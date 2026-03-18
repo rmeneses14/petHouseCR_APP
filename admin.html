@@ -114,24 +114,33 @@
 
     /* PANEL */
     .panel{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
-    .p-hd{padding:.9rem 1.2rem;border-bottom:1px solid var(--border);
-      display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;}
-    .p-title{font-size:.92rem;font-weight:700;color:var(--text-bright);display:flex;align-items:center;gap:.45rem;}
+    .p-hd{
+      padding:.85rem 1.2rem;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      flex-direction:column;
+      gap:.65rem;
+    }
+    .p-hd-row1{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;}
+    .p-title{font-size:.92rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:.45rem;flex-shrink:0;}
+    .p-hd-btns{display:flex;gap:.45rem;flex-wrap:wrap;}
     .p-body{padding:1.2rem;}
 
     /* BUTTONS */
-    .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:9px;
-      font-family:'Syne',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;border:none;
-      transition:all .18s;min-height:38px;white-space:nowrap;}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:.35rem;
+      padding:.5rem .9rem;border-radius:9px;
+      font-family:'Syne',sans-serif;font-size:.78rem;font-weight:600;
+      cursor:pointer;border:none;transition:all .18s;
+      min-height:36px;white-space:nowrap;flex-shrink:0;}
     .bp{background:linear-gradient(135deg,var(--purple),var(--purple-dim));color:#fff;box-shadow:0 3px 12px var(--purple-glow);}
-    .bp:hover{filter:brightness(1.12);transform:translateY(-1px);}
-    .bg{background:var(--green-dim);color:var(--green);border:1px solid rgba(62,207,164,.25);}
-    .bg:hover{background:rgba(62,207,164,.25);}
-    .br{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,90,126,.25);}
-    .br:hover{background:rgba(255,90,126,.25);}
-    .bgh{background:transparent;color:var(--text);border:1px solid var(--border-hi);}
+    .bp:hover{filter:brightness(1.1);transform:translateY(-1px);}
+    .bg{background:var(--green-dim);color:var(--green);border:1px solid rgba(46,158,117,.3);}
+    .bg:hover{background:rgba(46,158,117,.18);}
+    .br{background:var(--red-dim);color:var(--red);border:1px solid rgba(212,105,138,.3);}
+    .br:hover{background:rgba(212,105,138,.18);}
+    .bgh{background:transparent;color:var(--text-dim);border:1px solid var(--border-hi);}
     .bgh:hover{background:var(--bg-panel);border-color:var(--purple);color:var(--purple);}
-    .bsm{padding:.35rem .8rem;font-size:.76rem;min-height:32px;}
+    .bsm{padding:.35rem .7rem;font-size:.74rem;min-height:32px;}
     .btn:disabled{opacity:.35;cursor:not-allowed;}
 
     /* DAY PILLS */
@@ -151,23 +160,23 @@
     /* SLOT GRID */
     .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.7rem;}
     .slot{background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;
-      padding:.8rem .95rem;display:flex;align-items:center;gap:.7rem;
-      transition:border-color .18s;position:relative;}
+      padding:.7rem .85rem;display:flex;align-items:center;gap:.55rem;
+      transition:border-color .18s;position:relative;overflow:hidden;}
     .slot::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
     .slot.av::before{background:var(--green);}
     .slot.bk::before{background:var(--orange);}
     .slot.bl::before{background:var(--red);}
     .slot:hover{border-color:var(--border-hi);}
-    .slot-hr{font-family:'JetBrains Mono',monospace;font-size:.98rem;font-weight:600;color:var(--text-bright);min-width:52px;flex-shrink:0;}
+    .slot-hr{font-family:'JetBrains Mono',monospace;font-size:.9rem;font-weight:600;color:var(--text);min-width:48px;flex-shrink:0;}
     .slot-info{flex:1;min-width:0;}
-    .slot-pet{font-size:.82rem;font-weight:600;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .slot-own{font-size:.7rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.1rem;}
-    .stag{font-size:.62rem;font-weight:700;padding:.12rem .4rem;border-radius:5px;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0;}
-    .tav{background:var(--green-dim);color:var(--green);border:1px solid rgba(62,207,164,.2);}
-    .tbk{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(255,140,66,.2);}
-    .tbl{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,90,126,.2);}
-    .sbtns{display:flex;gap:.3rem;flex-shrink:0;}
-    .sb{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input);
+    .slot-pet{font-size:.8rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .slot-own{font-size:.68rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.1rem;}
+    .stag{font-size:.6rem;font-weight:700;padding:.1rem .38rem;border-radius:5px;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0;}
+    .tav{background:var(--green-dim);color:var(--green);border:1px solid rgba(46,158,117,.25);}
+    .tbk{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(232,129,58,.25);}
+    .tbl{background:var(--red-dim);color:var(--red);border:1px solid rgba(212,105,138,.25);}
+    .sbtns{display:flex;gap:.3rem;flex-shrink:0;align-items:center;}
+    .sb{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--bg-input);
       color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;
       font-size:.8rem;transition:all .15s;text-decoration:none;}
     .sb:hover.sbk{border-color:var(--orange);color:var(--orange);background:var(--orange-dim);}
@@ -242,22 +251,219 @@
       .shell{grid-template-columns:1fr;grid-template-rows:60px 1fr;}
       .sidebar{display:none;position:fixed;top:60px;left:0;right:0;bottom:0;z-index:200;padding:1rem;}
       .sidebar.open{display:flex;}
-      .main{padding:1rem;}
+      .main{padding:.85rem;}
       .kpis{grid-template-columns:repeat(2,1fr);}
       .sgrid{grid-template-columns:1fr;}
       .f2{grid-template-columns:1fr;}
       .ph-act{width:100%;}
       .ph-act .btn{flex:1;justify-content:center;}
+      .p-hd-btns{width:100%;}
+      .p-hd-btns .btn{flex:1;justify-content:center;font-size:.72rem;padding:.4rem .5rem;}
+      .sync-txt{display:none;}
     }
     @media(max-width:480px){
       .kpis{grid-template-columns:1fr 1fr;}
       .kpi-val{font-size:1.5rem;}
+      .stag{display:none;}       /* ocultar badge en slots — muy apretado */
+      .slot-hr{font-size:.82rem;min-width:42px;}
+    }
+
+    /* ══ LOGIN SCREEN ═════════════════════════════════════════ */
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: linear-gradient(135deg, var(--bg) 0%, #F4E8FF 50%, #FFE8D6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      overflow-y: auto;
+      transition: opacity .35s ease, transform .35s ease;
+    }
+    .login-screen.hiding {
+      opacity: 0;
+      transform: scale(.97);
+      pointer-events: none;
+    }
+    .login-screen.hidden { display: none; }
+
+    .login-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-hi);
+      border-radius: 28px;
+      padding: 1.75rem 1.5rem 1.5rem;
+      width: 100%;
+      max-width: 340px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(123,79,158,.15), 0 4px 20px rgba(59,31,14,.08);
+      animation: loginIn .5s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes loginIn {
+      from { opacity:0; transform:translateY(30px) scale(.96); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    .login-paw {
+      width: 58px; height: 58px;
+      background: linear-gradient(135deg, var(--purple), var(--orange));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      margin: 0 auto .85rem;
+      box-shadow: 0 6px 20px rgba(123,79,158,.3);
+      animation: pawBounce 2s ease-in-out infinite;
+    }
+    @keyframes pawBounce {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-6px); }
+    }
+
+    .login-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -.02em;
+      margin-bottom: .2rem;
+    }
+    .login-title span { color: var(--purple); }
+    .login-sub {
+      font-size: .76rem;
+      color: var(--text-dim);
+      margin-bottom: 1.25rem;
+    }
+
+    /* PIN dots display */
+    .pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: .85rem;
+      margin-bottom: 1.25rem;
+    }
+    .pin-dot {
+      width: 13px; height: 13px;
+      border-radius: 50%;
+      border: 2px solid var(--purple-dim);
+      background: transparent;
+      transition: all .2s ease;
+    }
+    .pin-dot.filled {
+      background: var(--purple);
+      border-color: var(--purple);
+      transform: scale(1.15);
+      box-shadow: 0 0 0 4px rgba(123,79,158,.15);
+    }
+    .pin-dot.error {
+      background: var(--red);
+      border-color: var(--red);
+      animation: shake .4s ease;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-6px); }
+      40%      { transform: translateX(6px); }
+      60%      { transform: translateX(-4px); }
+      80%      { transform: translateX(4px); }
+    }
+
+    /* Keypad */
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 76px);
+      grid-auto-rows: 56px;
+      gap: .45rem;
+      margin: 0 auto;
+      width: fit-content;
+    }
+    .key {
+      width: 76px;
+      height: 56px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--bg-panel);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s ease;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .key:hover  { background: var(--purple-dim); border-color: var(--purple); color: white; }
+    .key:active { transform: scale(.91); background: var(--purple); color: white; border-color: var(--purple); }
+    .key.del    { font-size: 1.1rem; color: var(--text-dim); }
+    .key.del:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+    .key.empty  { visibility: hidden; cursor: default; }
+
+    .login-error {
+      margin-top: .85rem;
+      font-size: .8rem;
+      color: var(--red);
+      font-weight: 600;
+      min-height: 1.2rem;
+      transition: opacity .2s;
+    }
+    .login-attempts {
+      margin-top: .25rem;
+      font-size: .72rem;
+      color: var(--text-dim);
+      min-height: 1rem;
+    }
+
+    /* Pantallas muy pequeñas (iPhone SE, etc.) */
+    @media (max-height: 680px) {
+      .login-card  { padding: 1.25rem 1.25rem 1.1rem; }
+      .login-paw   { width: 46px; height: 46px; font-size: 1.2rem; margin-bottom: .6rem; }
+      .login-title { font-size: 1.1rem; }
+      .login-sub   { margin-bottom: .9rem; font-size: .72rem; }
+      .pin-dots    { margin-bottom: .9rem; }
+      .key         { width: 68px; height: 48px; font-size: 1.05rem; }
+      .keypad      { grid-template-columns: repeat(3, 68px); grid-auto-rows: 48px; gap: .38rem; }
+      .login-error { margin-top: .6rem; }
     }
   </style>
 </head>
 <body>
-<div class="shell">
+<!-- ══ LOGIN SCREEN ══════════════════════════════════════════ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-paw">🐾</div>
+    <div class="login-title">Pet<span>House</span>CR</div>
+    <div class="login-sub">Panel de administración · Ingresa tu PIN</div>
 
+    <!-- 4 puntos que muestran el progreso del PIN -->
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot" id="dot0"></div>
+      <div class="pin-dot" id="dot1"></div>
+      <div class="pin-dot" id="dot2"></div>
+      <div class="pin-dot" id="dot3"></div>
+    </div>
+
+    <!-- Teclado numérico -->
+    <div class="keypad">
+      <button class="key" onclick="pinKey('1')">1</button>
+      <button class="key" onclick="pinKey('2')">2</button>
+      <button class="key" onclick="pinKey('3')">3</button>
+      <button class="key" onclick="pinKey('4')">4</button>
+      <button class="key" onclick="pinKey('5')">5</button>
+      <button class="key" onclick="pinKey('6')">6</button>
+      <button class="key" onclick="pinKey('7')">7</button>
+      <button class="key" onclick="pinKey('8')">8</button>
+      <button class="key" onclick="pinKey('9')">9</button>
+      <button class="key empty" disabled></button>
+      <button class="key" onclick="pinKey('0')">0</button>
+      <button class="key del" onclick="pinDel()">⌫</button>
+    </div>
+
+    <div class="login-error"  id="loginError"></div>
+    <div class="login-attempts" id="loginAttempts"></div>
+  </div>
+</div>
+
+<div class="shell" id="appShell" style="display:none;">
   <!-- TOPBAR -->
   <header class="topbar">
     <div class="tb-brand">
@@ -269,6 +475,15 @@
     <div class="tb-right">
       <div class="sync-dot loading" id="sDot"></div>
       <span class="sync-txt" id="sTxt">Cargando...</span>
+      <button onclick="clearSession()" title="Cerrar sesión"
+        style="background:transparent;border:1px solid var(--border);border-radius:8px;
+               padding:.3rem .7rem;font-size:.72rem;color:var(--text-dim);cursor:pointer;
+               font-family:'Syne',sans-serif;font-weight:600;display:flex;align-items:center;
+               gap:.3rem;transition:all .18s;min-height:32px;"
+        onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">
+        🔒 Salir
+      </button>
     </div>
   </header>
 
@@ -308,8 +523,10 @@
     <div id="view-hoy">
       <div class="panel">
         <div class="p-hd">
-          <div class="p-title">📅 <span id="lblFecha">—</span></div>
-          <div style="display:flex;gap:.45rem;flex-wrap:wrap;">
+          <div class="p-hd-row1">
+            <div class="p-title">📅 <span id="lblFecha">—</span></div>
+          </div>
+          <div class="p-hd-btns">
             <button class="btn bg bsm" onclick="abrirModal('nueva')">＋ Agendar cita</button>
             <button class="btn br bsm" onclick="bloquearDia()">🚫 Bloquear día</button>
             <button class="btn bgh bsm" onclick="liberarDia()">✅ Liberar bloqueadas</button>
@@ -366,13 +583,182 @@
       <button class="btn bp" onclick="guardarCita()">💾 Guardar cita</button>
     </div>
   </div>
-</div>
+</div><!-- /.shell -->
 
 <div class="toasts" id="toasts"></div>
 
 <script>
+// ════════════════════════════════════════════════════════════
+//  CONFIG — editar estas 2 líneas para personalizar
+// ════════════════════════════════════════════════════════════
+//  PIN_HASH : SHA-256 del PIN. Para generar uno nuevo:
+//    1. Abre https://emn178.github.io/online-tools/sha256.html
+//    2. Escribe tu PIN → copia el hash → pégalo aquí
+//  GITHUB_RAW : URL raw del availability.json en tu repo
+const PIN_HASH   = "357c08aaae039838b09aeb5b1ea24dfdc71e482d1c3f6746c6b12e8fa8c5fd50";
+const GITHUB_RAW = "https://raw.githubusercontent.com/rmeneses14/PetHouseCR-APP/main/availability.json";
+
+// ════════════════════════════════════════════════════════════
+//  LOGIN — SHA-256 puro, sin localStorage para el PIN
+//  Solo usamos localStorage para: sesión (8h) y lockout
+// ════════════════════════════════════════════════════════════
+const SESSION_KEY  = "phcr_s";
+const SESSION_TTL  = 8 * 60 * 60 * 1000; // 8 horas
+const LOCKOUT_KEY  = "phcr_l";
+const MAX_ATTEMPTS = 5;
+
+let pinBuffer = "";
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+// ── Lockout ─────────────────────────────────────────────────
+function getLockout() {
+  try { return JSON.parse(localStorage.getItem(LOCKOUT_KEY)) || { count:0, until:0 }; }
+  catch { return { count:0, until:0 }; }
+}
+function saveLockout(data) { localStorage.setItem(LOCKOUT_KEY, JSON.stringify(data)); }
+function isLockedOut() {
+  const l = getLockout();
+  return l.until > Date.now();
+}
+function lockoutRemaining() {
+  const secs = Math.ceil((getLockout().until - Date.now()) / 1000);
+  return secs > 0 ? secs : 0;
+}
+
+// ── Session ─────────────────────────────────────────────────
+function hasValidSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SESSION_KEY));
+    return s && s.exp > Date.now();
+  } catch { return false; }
+}
+function createSession() {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ exp: Date.now() + SESSION_TTL }));
+}
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+  location.reload();
+}
+
+// ── PIN UI ───────────────────────────────────────────────────
+function updateDots() {
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById("dot" + i);
+    d.classList.toggle("filled", i < pinBuffer.length);
+    d.classList.remove("error");
+  }
+}
+
+function pinKey(digit) {
+  if (isLockedOut()) { showLockoutMsg(); return; }
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updateDots();
+  if (pinBuffer.length === 4) setTimeout(checkPin, 120);
+}
+
+function pinDel() {
+  pinBuffer = pinBuffer.slice(0, -1);
+  updateDots();
+  document.getElementById("loginError").textContent = "";
+}
+
+async function checkPin() {
+  const hash = await sha256(pinBuffer);
+
+  if (hash === PIN_HASH) {
+    // ✅ Correcto
+    saveLockout({ count:0, until:0 });
+    createSession();
+    unlockApp();
+  } else {
+    // ❌ Incorrecto
+    const l = getLockout();
+    const newCount = l.count + 1;
+    let newUntil = 0;
+
+    if (newCount >= MAX_ATTEMPTS) {
+      // Bloqueo progresivo: 1 min × número de lockouts
+      const lockMins = Math.min(newCount - MAX_ATTEMPTS + 1, 10);
+      newUntil = Date.now() + lockMins * 60 * 1000;
+    }
+    saveLockout({ count: newCount, until: newUntil });
+
+    // Animar error
+    for (let i = 0; i < 4; i++) {
+      document.getElementById("dot" + i).classList.add("error");
+    }
+    setTimeout(() => {
+      pinBuffer = "";
+      updateDots();
+      if (isLockedOut()) {
+        showLockoutMsg();
+      } else {
+        const rem = MAX_ATTEMPTS - newCount;
+        document.getElementById("loginError").textContent = "PIN incorrecto";
+        document.getElementById("loginAttempts").textContent =
+          rem > 0 ? `${rem} intento${rem !== 1 ? "s" : ""} restante${rem !== 1 ? "s" : ""}` : "";
+      }
+    }, 400);
+  }
+}
+
+function showLockoutMsg() {
+  pinBuffer = "";
+  updateDots();
+  const secs = lockoutRemaining();
+  const mins = Math.ceil(secs / 60);
+  document.getElementById("loginError").textContent = `🔒 Bloqueado — espera ${mins} min`;
+  document.getElementById("loginAttempts").textContent = "";
+  // Countdown
+  const interval = setInterval(() => {
+    if (!isLockedOut()) {
+      clearInterval(interval);
+      document.getElementById("loginError").textContent = "";
+      document.getElementById("loginAttempts").textContent = "";
+    } else {
+      const s = lockoutRemaining();
+      document.getElementById("loginError").textContent =
+        `🔒 Bloqueado — espera ${Math.ceil(s/60)} min`;
+    }
+  }, 5000);
+}
+
+function unlockApp() {
+  const screen = document.getElementById("loginScreen");
+  screen.classList.add("hiding");
+  setTimeout(() => {
+    screen.classList.add("hidden");
+    document.getElementById("appShell").style.display = "grid";
+    cargar();
+  }, 350);
+}
+
+// ── Keyboard support ────────────────────────────────────────
+document.addEventListener("keydown", e => {
+  if (document.getElementById("loginScreen").classList.contains("hidden")) return;
+  if (e.key >= "0" && e.key <= "9") pinKey(e.key);
+  if (e.key === "Backspace") pinDel();
+});
+
+// ── Boot: check session first ────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  if (hasValidSession()) {
+    // Sesión activa — saltar login
+    document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("appShell").style.display = "grid";
+    cargar();
+  } else {
+    // Mostrar login
+    if (isLockedOut()) showLockoutMsg();
+  }
+});
+
 // ── CONFIG ─────────────────────────────────────────────────
-const _K=42, _EU="G09jeQd4Q0VcR3VbfVpkeVhpGnlbXB98RFlCHWRaQlMa";
 const WA="50660188490", OH=8, CH=17, DA=14;
 
 // ── UTILS ──────────────────────────────────────────────────
@@ -396,27 +782,26 @@ let db=null, selF=hoy(), dates=[];
 // ── CARGA ──────────────────────────────────────────────────
 async function cargar(){
   setSS("loading","Cargando...");
-  const id = dec(_EU);
-  const candidates = [
-    `https://drive.usercontent.google.com/download?id=${id}&export=download&authuser=0`,
-    `./availability.json`,
-    `https://drive.google.com/uc?export=download&id=${id}`,
+  // Fuentes en orden: GitHub raw (mismo repo, sin CORS) → local fallback
+  const sources = [
+    GITHUB_RAW + "?t=" + Date.now(),  // cache-bust
+    "./availability.json",             // fallback local
   ];
-  for(const url of candidates){
+  for(const url of sources){
     try{
-      const r=await fetch(url,{cache:"no-store"});
+      const r = await fetch(url, { cache:"no-store" });
       if(!r.ok) continue;
-      const text=await r.text();
-      if(text.trim().startsWith("<")) continue;
-      const data=JSON.parse(text);
+      const text = await r.text();
+      if(text.trim().startsWith("<")) continue; // HTML = error page
+      const data = JSON.parse(text);
       if(!data.slots) continue;
-      db=data;
+      db = data;
       setSS("ok","Actualizado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
       dates=getFechas(); refrescar(); return;
-    }catch(e){ console.warn("❌",url,e.message); }
+    } catch(e){ console.warn("❌ fetch falló:", url, e.message); }
   }
-  setSS("error","Sin conexión");
-  toast("No se pudo cargar el archivo. Mostrando datos de ejemplo.","err");
+  setSS("error","Sin conexión al JSON");
+  toast("No se pudo cargar la agenda. Verifica tu conexión.","err");
   db=demo(); dates=getFechas(); refrescar();
 }
 
@@ -637,7 +1022,7 @@ function toast(msg,type="inf"){
 }
 
 document.addEventListener("keydown",e=>{if(e.key==="Escape")cmo();});
-document.addEventListener("DOMContentLoaded",cargar);
+// Boot handled by login system above
 </script>
 </body>
 </html>

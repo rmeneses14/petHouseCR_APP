@@ -912,34 +912,16 @@
 // ════════════════════════════════════════════════════════════
 //  CONFIG — solo editar estas variables
 // ════════════════════════════════════════════════════════════
-const WA_NUMBER = "50660188490"; // WhatsApp PetHouseCR
-
-// File ID del JSON en Google Drive (cifrado XOR+Base64)
-const SHEET_KEY = 42;
-const SHEET_ENCODED = "G09jeQd4Q0VcR3VbfVpkeVhpGnlbXB98RFlCHWRaQlMa";
+const WA_NUMBER  = "50660188490"; // WhatsApp PetHouseCR
+// URL raw de GitHub — mismo repo, sin CORS
+// Cambiar rmeneses14/PetHouseCR-APP por tu usuario/repo reales
+const GITHUB_RAW = "https://raw.githubusercontent.com/rmeneses14/PetHouseCR-APP/main/availability.json";
 
 const OPEN_HOUR  = 8;   // 8:00 AM
 const CLOSE_HOUR = 17;  // última cita 4:00 PM (no incluye 17)
 const DAYS_AHEAD = 14;
 
-// ════════════════════════════════════════════════════════════
-//  CIFRADO XOR (obfusca la URL del Sheet en el HTML)
-// ════════════════════════════════════════════════════════════
-function xorCipher(str, key) {
-  return str.split('').map(c =>
-    String.fromCharCode(c.charCodeAt(0) ^ key)
-  ).join('');
-}
-function encodeSheetUrl(url) {
-  // Llamar desde consola para obtener el valor a pegar en SHEET_ENCODED
-  const encoded = btoa(xorCipher(url, SHEET_KEY));
-  console.log("SHEET_ENCODED:", encoded);
-  return encoded;
-}
-function decodeSheetUrl(encoded) {
-  if (!encoded) return "";
-  return xorCipher(atob(encoded), SHEET_KEY);
-}
+
 
 // ════════════════════════════════════════════════════════════
 //  CALENDAR CONFIG
@@ -994,50 +976,33 @@ function formatHour(h) {
 }
 
 async function loadAvailability() {
-  const fileId = decodeSheetUrl(SHEET_ENCODED);
-
-  // Sin URL configurada → demo
-  if (!fileId) { loadDemo(); return; }
-
-  // Extraer solo el File ID si viene URL completa
-  const idMatch = fileId.match(/[-\w]{25,}/);
-  const id = idMatch ? idMatch[0] : fileId;
-
-  // Estrategia: 3 formatos de URL de Drive, en orden de compatibilidad CORS
-  const candidates = [
-    // 1. drive.usercontent.google.com — mejor soporte CORS en 2025+
-    `https://drive.usercontent.google.com/download?id=${id}&export=download&authuser=0`,
-    // 2. availability.json local (mismo repo GitHub Pages) — fallback ideal
-    `./availability.json`,
-    // 3. formato clásico /uc
-    `https://drive.google.com/uc?export=download&id=${id}`,
+  // Fuentes en orden: GitHub raw (sin CORS) → local fallback
+  const sources = [
+    GITHUB_RAW + "?t=" + Date.now(),
+    "./availability.json",
   ];
-
-  for (const url of candidates) {
+  for (const url of sources) {
     try {
       const resp = await fetch(url, { cache: "no-store" });
       if (!resp.ok) continue;
-      const ct = resp.headers.get("content-type") || "";
-      // Drive a veces devuelve HTML de confirmación — rechazarlo
       const text = await resp.text();
       if (text.trim().startsWith("<")) continue;
       const data = JSON.parse(text);
       if (!data.slots) continue;
-      // ✅ Éxito — convertir a mapa
+      // Convertir array → mapa { fecha: { hora: disponible } }
       availability = {};
-      data.slots.forEach(slot => {
-        if (!availability[slot.fecha]) availability[slot.fecha] = {};
-        availability[slot.fecha][slot.hora] = slot.disponible;
+      data.slots.forEach(s => {
+        if (!availability[s.fecha]) availability[s.fecha] = {};
+        availability[s.fecha][s.hora] = s.disponible;
       });
-      console.log("✅ Datos cargados desde:", url);
+      console.log("✅ JSON cargado:", url);
       return;
     } catch(e) {
-      console.warn("❌ Falló:", url, e.message);
+      console.warn("❌ Fuente falló:", url, e.message);
     }
   }
-
-  // Todos fallaron → mostrar demo pero con mensaje claro
-  console.warn("⚠️ Sin conexión al JSON — mostrando disponibilidad demo");
+  // Sin conexión → demo aleatorio
+  console.warn("⚠️ Modo demo — sin conexión al JSON");
   loadDemo();
 }
 
@@ -1045,9 +1010,7 @@ function loadDemo() {
   generateDates().forEach(d => {
     const key = dateKey(d);
     availability[key] = {};
-    generateSlots().forEach(s => {
-      availability[key][s] = Math.random() > 0.3;
-    });
+    generateSlots().forEach(s => { availability[key][s] = Math.random() > 0.3; });
   });
   const todayKey = dateKey(new Date());
   if (availability[todayKey]) {

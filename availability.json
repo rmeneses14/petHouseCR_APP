@@ -1,0 +1,838 @@
+{
+  "meta": {
+    "version": "1.0",
+    "negocio": "PetHouseCR",
+    "whatsapp": "50688887777",
+    "horario": {
+      "apertura": "08:00",
+      "cierre": "17:00",
+      "dias": [
+        "lunes",
+        "martes",
+        "miercoles",
+        "jueves",
+        "viernes",
+        "sabado",
+        "domingo"
+      ]
+    },
+    "ultima_actualizacion": "2026-03-18T00:00:00"
+  },
+  "auth": {
+    "pin_hash": "357c08aaae039838b09aeb5b1ea24dfdc71e482d1c3f6746c6b12e8fa8c5fd50",
+    "_note": "SHA-256 del PIN. Generar nuevo hash en: https://emn178.github.io/online-tools/sha256.html"
+  },
+  "slots": [
+    {
+      "fecha": "2026-03-18",
+      "hora": "08:00",
+      "disponible": false,
+      "cita": {
+        "perrito": "Kira",
+        "raza": "Pomeranian",
+        "dueno": "Sofía Ramírez",
+        "telefono": "88881111"
+      }
+    },
+    {
+      "fecha": "2026-03-18",
+      "hora": "09:00",
+      "disponible": false,
+      "cita": {
+        "perrito": "Luna",
+        "raza": "Shih Tzu",
+        "dueno": "Carlos Mora",
+        "telefono": "88882222"
+      }
+    },
+    {
+      "fecha": "2026-03-18",
+      "hora": "10:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-18",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-18",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-18",
+      "hora": "13:00",
+      "disponible": false,
+      "cita": {
+        "perrito": "Max",
+        "raza": "Bichón Frisé",
+        "dueno": "Laura Jiménez",
+        "telefono": "88883333"
+      }
+    },
+    {
+      "fecha": "2026-03-18",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-18",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-18",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-19",
+      "hora": "08:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-19",
+      "hora": "09:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-19",
+      "hora": "10:00",
+      "disponible": false,
+      "cita": {
+        "perrito": "Coco",
+        "raza": "Maltés",
+        "dueno": "Ana Solís",
+        "telefono": "88884444"
+      }
+    },
+    {
+      "fecha": "2026-03-19",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-19",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-19",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-19",
+      "hora": "14:00",
+      "disponible": false,
+      "cita": {
+        "perrito": "Toby",
+        "raza": "Yorkshire Terrier",
+        "dueno": "Miguel Vargas",
+        "telefono": "88885555"
+      }
+    },
+    {
+      "fecha": "2026-03-19",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-19",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-20",
+      "hora": "08:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-20",
+      "hora": "09:00",
+      "disponible": false,
+      "cita": {
+        "perrito": "Bella",
+        "raza": "Spitz Alemán",
+        "dueno": "Valeria Castro",
+        "telefono": "88886666"
+      }
+    },
+    {
+      "fecha": "2026-03-20",
+      "hora": "10:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-20",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-20",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-20",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-20",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-20",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-20",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-21",
+      "hora": "08:00",
+      "disponible": false,
+      "cita": {
+        "perrito": "Nala",
+        "raza": "Caniche Toy",
+        "dueno": "Patricia Herrera",
+        "telefono": "88887777"
+      }
+    },
+    {
+      "fecha": "2026-03-21",
+      "hora": "09:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-21",
+      "hora": "10:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-21",
+      "hora": "11:00",
+      "disponible": false,
+      "cita": {
+        "perrito": "Rocky",
+        "raza": "Bulldog Francés",
+        "dueno": "Andrés León",
+        "telefono": "88888888"
+      }
+    },
+    {
+      "fecha": "2026-03-21",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-21",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-21",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-21",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-21",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-22",
+      "hora": "08:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-22",
+      "hora": "09:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-22",
+      "hora": "10:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-22",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-22",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-22",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-22",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-22",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-22",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-23",
+      "hora": "08:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-23",
+      "hora": "09:00",
+      "disponible": false,
+      "cita": {
+        "perrito": "Dulce",
+        "raza": "Pomeranian",
+        "dueno": "Daniela Fonseca",
+        "telefono": "88889999"
+      }
+    },
+    {
+      "fecha": "2026-03-23",
+      "hora": "10:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-23",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-23",
+      "hora": "12:00",
+      "disponible": false,
+      "cita": {
+        "perrito": "Bruno",
+        "raza": "Cocker Spaniel",
+        "dueno": "Roberto Quesada",
+        "telefono": "88880000"
+      }
+    },
+    {
+      "fecha": "2026-03-23",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-23",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-23",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-23",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-24",
+      "hora": "08:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-24",
+      "hora": "09:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-24",
+      "hora": "10:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-24",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-24",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-24",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-24",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-24",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-24",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-25",
+      "hora": "08:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-25",
+      "hora": "09:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-25",
+      "hora": "10:00",
+      "disponible": false,
+      "cita": {
+        "perrito": "Lola",
+        "raza": "Schnauzer Miniatura",
+        "dueno": "Gabriela Salas",
+        "telefono": "77771111"
+      }
+    },
+    {
+      "fecha": "2026-03-25",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-25",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-25",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-25",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-25",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-25",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-26",
+      "hora": "08:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-26",
+      "hora": "09:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-26",
+      "hora": "10:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-26",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-26",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-26",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-26",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-26",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-26",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-27",
+      "hora": "08:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-27",
+      "hora": "09:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-27",
+      "hora": "10:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-27",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-27",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-27",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-27",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-27",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-27",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-28",
+      "hora": "08:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-28",
+      "hora": "09:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-28",
+      "hora": "10:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-28",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-28",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-28",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-28",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-28",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-28",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-29",
+      "hora": "08:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-29",
+      "hora": "09:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-29",
+      "hora": "10:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-29",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-29",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-29",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-29",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-29",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-29",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-30",
+      "hora": "08:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-30",
+      "hora": "09:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-30",
+      "hora": "10:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-30",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-30",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-30",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-30",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-30",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-30",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-31",
+      "hora": "08:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-31",
+      "hora": "09:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-31",
+      "hora": "10:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-31",
+      "hora": "11:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-31",
+      "hora": "12:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-31",
+      "hora": "13:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-31",
+      "hora": "14:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-31",
+      "hora": "15:00",
+      "disponible": true,
+      "cita": null
+    },
+    {
+      "fecha": "2026-03-31",
+      "hora": "16:00",
+      "disponible": true,
+      "cita": null
+    }
+  ]
+}
