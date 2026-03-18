@@ -348,7 +348,7 @@
 
     /* ── PARALLAX BANNER ───────────────────────────────────── */
     .parallax-banner {
-      height: 300px;
+      height: 340px;
       position: relative;
       display: flex;
       align-items: center;
@@ -357,11 +357,11 @@
     }
     .parallax-banner .pb-bg {
       position: absolute;
-      inset: 0;
+      inset: -60px;          /* extra room for parallax movement */
       background-size: cover;
-      background-attachment: fixed;
-      background-position: center;
+      background-position: center 20%;
       will-change: transform;
+      transition: transform .05s linear;
     }
     .parallax-banner .pb-overlay {
       position:absolute;
@@ -409,10 +409,17 @@
       background-size:200% !important;
     }
     .gallery-item:hover { transform:translateY(-6px) scale(1.02); box-shadow:0 20px 50px rgba(59,31,14,.2); z-index:5; }
-    .gallery-item.tall { grid-row:span 2; }
+    .gallery-item.tall { grid-row:span 2; min-height:540px; }
     .gallery-item.wide { grid-column:span 2; }
-    .g-inner { width:100%; height:100%; min-height:260px; background-size:cover !important; background-position:center !important; transition:transform .5s ease; }
-    .gallery-item:hover .g-inner { transform:scale(1.07); }
+    .gallery-item img {
+      width:100%; height:100%;
+      object-fit:cover; object-position:center top;
+      display:block;
+      transition:transform .5s ease;
+      min-height:260px;
+    }
+    .gallery-item:not(.tall) { min-height:260px; }
+    .gallery-item:hover img { transform:scale(1.08); }
     .gallery-overlay {
       position:absolute; inset:0;
       background:linear-gradient(to top,rgba(123,79,158,.85) 0%,transparent 65%);
@@ -421,15 +428,6 @@
     }
     .gallery-item:hover .gallery-overlay { opacity:1; }
     .gallery-overlay span { color:var(--white); font-size:.85rem; font-weight:500; }
-
-    .gimg1 .g-inner { background:url('Gemini_Generated_Image_4hl7sa4hl7sa4hl7.png') no-repeat; background-position:0% 0% !important; }
-    .gimg2 .g-inner { background:url('Gemini_Generated_Image_4hl7sa4hl7sa4hl7.png') no-repeat; background-position:100% 0% !important; }
-    .gimg3 .g-inner { background:url('Gemini_Generated_Image_4hl7sa4hl7sa4hl7.png') no-repeat; background-position:0% 55% !important; }
-    .gimg4 .g-inner { background:url('Gemini_Generated_Image_4hl7sa4hl7sa4hl7.png') no-repeat; background-position:100% 55% !important; }
-    .gimg5 .g-inner { background:url('Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png') no-repeat; background-position:0% 0% !important; }
-    .gimg6 .g-inner { background:url('Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png') no-repeat; background-position:100% 0% !important; }
-    .gimg7 .g-inner { background:url('Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png') no-repeat; background-position:0% 100% !important; }
-    .gimg8 .g-inner { background:url('Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png') no-repeat; background-position:100% 100% !important; }
 
     /* ── SERVICES ──────────────────────────────────────────── */
     .services-section {
@@ -728,15 +726,15 @@
   </div>
 
   <div class="hero-visual">
-    <img src="Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png" alt="Perrito PetHouseCR" class="hero-img-main" />
-    <img src="Gemini_Generated_Image_4hl7sa4hl7sa4hl7.png" alt="Pomeranian" class="hero-img-f1" />
-    <img src="Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png" alt="Pomeranian styled" class="hero-img-f2" />
+    <img src="dog7.png" alt="Perrito PetHouseCR" class="hero-img-main" />
+    <img src="dog3.png" alt="Pomeranian" class="hero-img-f1" />
+    <img src="dog4.png" alt="Pomeranian styled" class="hero-img-f2" />
   </div>
 </section>
 
 <!-- ── PARALLAX BANNER 1 ─────────────────────────────────── -->
 <div class="parallax-banner" id="pb1">
-  <div class="pb-bg" style="background-image:url('Gemini_Generated_Image_4hl7sa4hl7sa4hl7.png');" id="pb1bg"></div>
+  <div class="pb-bg" style="background-image:url('dog6.png');" id="pb1bg"></div>
   <div class="pb-overlay"></div>
   <div class="pb-content">
     <h2>Cada peludo es único</h2>
@@ -752,14 +750,41 @@
     <div class="section-line"></div>
   </div>
   <div class="gallery-grid reveal">
-    <div class="gallery-item tall gimg1"><div class="g-inner"></div><div class="gallery-overlay"><span>🐾 Antes y después</span></div></div>
-    <div class="gallery-item gimg2"><div class="g-inner"></div><div class="gallery-overlay"><span>🎃 Look especial</span></div></div>
-    <div class="gallery-item gimg3"><div class="g-inner"></div><div class="gallery-overlay"><span>✂️ Corte clásico</span></div></div>
-    <div class="gallery-item wide gimg4"><div class="g-inner"></div><div class="gallery-overlay"><span>🐕 Spitz alemán</span></div></div>
-    <div class="gallery-item gimg5"><div class="g-inner"></div><div class="gallery-overlay"><span>🌟 Top look</span></div></div>
-    <div class="gallery-item tall gimg6"><div class="g-inner"></div><div class="gallery-overlay"><span>🐾 Pelito perfecto</span></div></div>
-    <div class="gallery-item gimg7"><div class="g-inner"></div><div class="gallery-overlay"><span>💜 Con amor</span></div></div>
-    <div class="gallery-item gimg8"><div class="g-inner"></div><div class="gallery-overlay"><span>🛁 Baño completo</span></div></div>
+    <!-- dog6: cara negra grande — ocupa 2 filas -->
+    <div class="gallery-item tall">
+      <img src="dog6.png" alt="Pomeranian negro cara" loading="lazy"/>
+      <div class="gallery-overlay"><span>🐾 Nuestra estrella</span></div>
+    </div>
+    <!-- dog7: trick or treat azul -->
+    <div class="gallery-item">
+      <img src="dog7.png" alt="Pomeranian Trick or Treat" loading="lazy"/>
+      <div class="gallery-overlay"><span>🎃 Trick or Treat</span></div>
+    </div>
+    <!-- dog4: trick or treat amarillo -->
+    <div class="gallery-item">
+      <img src="dog4.png" alt="Pomeranian bandana Halloween" loading="lazy"/>
+      <div class="gallery-overlay"><span>✂️ Look Halloween</span></div>
+    </div>
+    <!-- dog5 + dog3: dos rubios lado a lado — wide -->
+    <div class="gallery-item wide">
+      <img src="dog5.png" alt="Pomeranian dorado bandana" loading="lazy" style="object-position:center center;"/>
+      <div class="gallery-overlay"><span>🐕 Doradito feliz</span></div>
+    </div>
+    <!-- dog3: rubio cara blanca -->
+    <div class="gallery-item">
+      <img src="dog3.png" alt="Pomeranian rubio bandana morada" loading="lazy"/>
+      <div class="gallery-overlay"><span>💜 Bandana especial</span></div>
+    </div>
+    <!-- dog2: cara close-up — ocupa 2 filas -->
+    <div class="gallery-item tall">
+      <img src="dog2.png" alt="Pomeranian close-up" loading="lazy" style="object-position:center 20%;"/>
+      <div class="gallery-overlay"><span>👁 Close-up</span></div>
+    </div>
+    <!-- dog1: en el sofá -->
+    <div class="gallery-item">
+      <img src="dog1.png" alt="Pomeranian en el sofá" loading="lazy"/>
+      <div class="gallery-overlay"><span>🛁 Relajadito</span></div>
+    </div>
   </div>
 </section>
 
@@ -836,7 +861,7 @@
 
 <!-- ── PARALLAX BANNER 2 ─────────────────────────────────── -->
 <div class="parallax-banner" id="pb2">
-  <div class="pb-bg" style="background-image:url('Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png');" id="pb2bg"></div>
+  <div class="pb-bg" style="background-image:url('dog5.png');" id="pb2bg"></div>
   <div class="pb-overlay" style="background:linear-gradient(135deg,rgba(232,129,58,.7),rgba(59,31,14,.6));"></div>
   <div class="pb-content">
     <h2>Belleza que se nota</h2>
@@ -1062,13 +1087,12 @@ async function initCalendar() {
 }
 
 // ════════════════════════════════════════════════════════════
-//  ANIMATED PAW PRINTS — stepping footsteps across screen
+//  ANIMATED PAW PRINTS — pasos reales cruzando la pantalla
 // ════════════════════════════════════════════════════════════
 (function initPawCanvas() {
   const canvas = document.getElementById("paw-canvas");
   const ctx    = canvas.getContext("2d");
 
-  // Resize canvas to viewport
   function resize() {
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -1076,29 +1100,32 @@ async function initCalendar() {
   resize();
   window.addEventListener("resize", resize, { passive: true });
 
-  // ── Draw one paw print ──────────────────────────────────
-  // s = size, angle = walking direction, alpha, isRight = left/right paw
-  function drawPaw(x, y, s, angle, alpha, isRight) {
+  // Paleta de la marca
+  const COLORS = ["#7B4F9E","#D4698A","#E8813A","#C9A7D8"];
+
+  // ── Dibuja UNA huella completa con anatomía real ────────────
+  function drawPaw(x, y, size, angle, alpha, isRight, colorIdx) {
     ctx.save();
     ctx.globalAlpha = alpha;
     ctx.translate(x, y);
-    ctx.rotate(angle + (isRight ? 0.18 : -0.18)); // toe-out angle
+    // Rotar hacia donde camina + toe-out natural
+    ctx.rotate(angle + (isRight ? 0.2 : -0.2));
 
-    const color = Math.random() < 0.5 ? "#7B4F9E" : "#D4698A"; // purple or pink
+    const col = COLORS[colorIdx % COLORS.length];
+    ctx.fillStyle = col;
 
-    // ── Main metacarpal pad (heart-shaped base) ───────────
+    // Almohadilla palmar principal — ligeramente ovalada
     ctx.beginPath();
-    ctx.ellipse(0, s * 0.05, s * 0.52, s * 0.62, 0, 0, Math.PI * 2);
-    ctx.fillStyle = color;
+    ctx.ellipse(0, size * 0.1, size * 0.50, size * 0.60, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // ── 4 digital pads (toes) ─────────────────────────────
-    // Staggered heights: outer toes lower than inner
+    // 4 dedos digitales — escalonados como en una pata real
+    // Dedos centrales más adelantados que los laterales
     const toes = [
-      { dx: -s*0.52, dy: -s*0.50, rx: s*0.22, ry: s*0.26, rot:  0.35 },
-      { dx: -s*0.20, dy: -s*0.78, rx: s*0.24, ry: s*0.27, rot:  0.10 },
-      { dx:  s*0.20, dy: -s*0.78, rx: s*0.24, ry: s*0.27, rot: -0.10 },
-      { dx:  s*0.52, dy: -s*0.50, rx: s*0.22, ry: s*0.26, rot: -0.35 },
+      { dx: -size*0.50, dy: -size*0.48, rx: size*0.20, ry: size*0.24, rot:  0.30 }, // exterior izq
+      { dx: -size*0.18, dy: -size*0.74, rx: size*0.22, ry: size*0.26, rot:  0.08 }, // interior izq
+      { dx:  size*0.18, dy: -size*0.74, rx: size*0.22, ry: size*0.26, rot: -0.08 }, // interior der
+      { dx:  size*0.50, dy: -size*0.48, rx: size*0.20, ry: size*0.24, rot: -0.30 }, // exterior der
     ];
     toes.forEach(({ dx, dy, rx, ry, rot }) => {
       ctx.save();
@@ -1106,7 +1133,6 @@ async function initCalendar() {
       ctx.rotate(rot);
       ctx.beginPath();
       ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
-      ctx.fillStyle = color;
       ctx.fill();
       ctx.restore();
     });
@@ -1114,73 +1140,76 @@ async function initCalendar() {
     ctx.restore();
   }
 
-  // ── Build one walking trail ─────────────────────────────
-  // Each trail = alternating left/right paw prints that
-  // march in a straight-ish line across the canvas
-  const STEPS     = 20;   // paw prints per trail
-  const STEP_MS   = 280;  // ms between each footfall
-  const FADE_IN   = 350;  // ms to appear
-  const HOLD_MS   = 2800; // ms at full opacity
-  const FADE_OUT  = 1400; // ms to disappear
+  // ── Construye UN rastro de pasos ────────────────────────────
+  const STEPS      = 22;    // número de huellas por rastro
+  const STRIDE     = 0;     // calculado del tamaño
+  const WANDER     = 0.07;  // curvatura del camino
+  const STEP_MS    = 260;   // ms entre cada huella (ritmo de zancada)
+  const FADE_IN_MS = 300;
+  const HOLD_MS    = 3200;
+  const FADE_OUT_MS= 1600;
 
   function makeTrail() {
-    // Pick a random entry edge
-    const edge = Math.floor(Math.random() * 4);
-    let sx, sy, baseAngle;
     const W = canvas.width, H = canvas.height;
+    const edge = Math.floor(Math.random() * 4);
+    let sx, sy, angle;
 
-    if      (edge === 0) { sx = Math.random() * W;  sy = -30;    baseAngle =  Math.PI * 0.5 + (Math.random()-.5) * 0.7; }
-    else if (edge === 1) { sx = W + 30;              sy = Math.random() * H; baseAngle =  Math.PI     + (Math.random()-.5) * 0.7; }
-    else if (edge === 2) { sx = Math.random() * W;  sy = H + 30; baseAngle = -Math.PI * 0.5 + (Math.random()-.5) * 0.7; }
-    else                 { sx = -30;                 sy = Math.random() * H; baseAngle =  0           + (Math.random()-.5) * 0.7; }
+    if      (edge === 0) { sx = W * (.1 + Math.random() * .8); sy = -35;    angle =  Math.PI/2  + (Math.random()-.5)*.6; }
+    else if (edge === 1) { sx = W + 35;  sy = H * (.1 + Math.random() * .8); angle =  Math.PI    + (Math.random()-.5)*.6; }
+    else if (edge === 2) { sx = W * (.1 + Math.random() * .8); sy = H + 35; angle = -Math.PI/2  + (Math.random()-.5)*.6; }
+    else                 { sx = -35;     sy = H * (.1 + Math.random() * .8); angle =              (Math.random()-.5)*.6; }
 
-    const size      = 10 + Math.random() * 12;       // paw size px
-    const stride    = size * 3.2;                     // distance between steps
-    const sideStep  = size * 0.55;                    // lateral offset left/right
-    const wander    = 0.09;                           // path curvature per step
+    const size     = 13 + Math.random() * 10;   // 13–23px
+    const stride   = size * 3.0;                 // distancia entre pasos
+    const lateral  = size * 0.52;                // separación izq/der
+    const colorIdx = Math.floor(Math.random() * COLORS.length);
+    const peakAlpha= 0.13 + Math.random() * 0.10; // 0.13–0.23, sutil pero visible
 
+    let cx = sx, cy = sy, ca = angle;
     const steps = [];
-    let cx = sx, cy = sy, ca = baseAngle;
 
     for (let i = 0; i < STEPS; i++) {
-      ca += (Math.random() - 0.5) * wander;
+      ca += (Math.random() - .5) * WANDER;
       cx += Math.cos(ca) * stride;
       cy += Math.sin(ca) * stride;
 
-      const isRight = i % 2 === 0;
+      const isRight   = i % 2 === 0;
       const perpAngle = ca + Math.PI / 2;
-      const lateralSign = isRight ? 1 : -1;
+      const sign      = isRight ? 1 : -1;
 
       steps.push({
-        x:       cx + Math.cos(perpAngle) * sideStep * lateralSign,
-        y:       cy + Math.sin(perpAngle) * sideStep * lateralSign,
+        x:       cx + Math.cos(perpAngle) * lateral * sign,
+        y:       cy + Math.sin(perpAngle) * lateral * sign,
         angle:   ca,
         size,
         isRight,
-        born:    0,               // timestamp when revealed
+        colorIdx,
+        born:    0,
         alpha:   0,
-        peak:    0.06 + Math.random() * 0.06, // max opacity (subtle on light bg)
+        peak:    peakAlpha,
       });
     }
     return { steps, idx: 0, ticker: 0 };
   }
 
-  // ── Trail pool ──────────────────────────────────────────
-  const MAX_TRAILS    = 5;
-  const SPAWN_INTERVAL = 2600; // ms between new trails
-  const trails = [];
+  // ── Pool de rastros ─────────────────────────────────────────
+  const MAX_TRAILS    = 6;
+  const SPAWN_MS      = 2200;
+  const trails        = [];
 
   function spawnTrail() {
     if (trails.length < MAX_TRAILS) trails.push(makeTrail());
   }
+  // Arrancar con 2 rastros inmediatamente para que no salga vacío
   spawnTrail();
-  setInterval(spawnTrail, SPAWN_INTERVAL);
+  setTimeout(spawnTrail, 600);
+  setInterval(spawnTrail, SPAWN_MS);
 
-  // ── Render loop ─────────────────────────────────────────
+  // ── Loop de render ──────────────────────────────────────────
   let prevTs = 0;
 
   function loop(ts) {
-    const dt = Math.min(ts - prevTs, 100); // cap dt to avoid jump on tab restore
+    const dt = Math.min(ts - prevTs, 80);
     prevTs = ts;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1189,34 +1218,32 @@ async function initCalendar() {
       const trail = trails[t];
       trail.ticker += dt;
 
-      // Reveal one new paw print every STEP_MS ms
+      // Revelar siguiente huella según ritmo
       if (trail.ticker >= STEP_MS && trail.idx < trail.steps.length) {
         trail.steps[trail.idx].born = ts;
         trail.idx++;
-        trail.ticker -= STEP_MS; // keep remainder for tight rhythm
+        trail.ticker -= STEP_MS;
       }
 
       let anyVisible = false;
 
       trail.steps.forEach(p => {
-        if (p.born === 0) return; // not yet revealed
-
+        if (!p.born) return;
         const age = ts - p.born;
 
-        if        (age < FADE_IN)              { p.alpha = (age / FADE_IN) * p.peak; }
-        else if   (age < FADE_IN + HOLD_MS)    { p.alpha = p.peak; }
+        if      (age < FADE_IN_MS)                       p.alpha = (age / FADE_IN_MS) * p.peak;
+        else if (age < FADE_IN_MS + HOLD_MS)             p.alpha = p.peak;
         else {
-          const fadeAge = age - FADE_IN - HOLD_MS;
-          p.alpha = Math.max(0, p.peak * (1 - fadeAge / FADE_OUT));
+          const fo = age - FADE_IN_MS - HOLD_MS;
+          p.alpha = Math.max(0, p.peak * (1 - fo / FADE_OUT_MS));
         }
 
-        if (p.alpha > 0.001) {
-          drawPaw(p.x, p.y, p.size, p.angle, p.alpha, p.isRight);
+        if (p.alpha > 0.003) {
+          drawPaw(p.x, p.y, p.size, p.angle, p.alpha, p.isRight, p.colorIdx);
           anyVisible = true;
         }
       });
 
-      // Remove trail once all prints have faded and all steps revealed
       if (trail.idx >= trail.steps.length && !anyVisible) {
         trails.splice(t, 1);
       }
