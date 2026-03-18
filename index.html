@@ -348,7 +348,7 @@
 
     /* ── PARALLAX BANNER ───────────────────────────────────── */
     .parallax-banner {
-      height: 340px;
+      height: 360px;
       position: relative;
       display: flex;
       align-items: center;
@@ -357,11 +357,15 @@
     }
     .parallax-banner .pb-bg {
       position: absolute;
-      inset: -60px;          /* extra room for parallax movement */
+      inset: -80px;
       background-size: cover;
-      background-position: center 20%;
+      background-position: center 30%;
       will-change: transform;
       transition: transform .05s linear;
+    }
+    /* Banner 2 usa foto de perro de cuerpo completo — centrar más abajo */
+    #pb2 .pb-bg {
+      background-position: center 15%;
     }
     .parallax-banner .pb-overlay {
       position:absolute;
@@ -910,9 +914,9 @@
 // ════════════════════════════════════════════════════════════
 const WA_NUMBER = "50660188490"; // WhatsApp PetHouseCR
 
-// URL del JSON en Google Drive cifrada con XOR+Base64
+// File ID del JSON en Google Drive (cifrado XOR+Base64)
 const SHEET_KEY = 42;
-const SHEET_ENCODED = "Ql5eWlkQBQVOWENcTwRNRUVNRk8ESUVHBV9JFU9SWkVYXhdORV1ERkVLTgxDThcbT2N5B3hDRVxHdVt9WmR5WGkaeVtcH3xEWUIdZFpCUxo=";
+const SHEET_ENCODED = "G09jeQd4Q0VcR3VbfVpkeVhpGnlbXB98RFlCHWRaQlMa";
 
 const OPEN_HOUR  = 8;   // 8:00 AM
 const CLOSE_HOUR = 17;  // última cita 4:00 PM (no incluye 17)
@@ -990,35 +994,64 @@ function formatHour(h) {
 }
 
 async function loadAvailability() {
-  const jsonUrl = decodeSheetUrl(SHEET_ENCODED);
-  if (!jsonUrl) {
-    // DEMO: disponibilidad aleatoria
-    generateDates().forEach(d => {
-      const key = dateKey(d);
-      availability[key] = {};
-      generateSlots().forEach(s => {
-        availability[key][s] = Math.random() > 0.3;
+  const fileId = decodeSheetUrl(SHEET_ENCODED);
+
+  // Sin URL configurada → demo
+  if (!fileId) { loadDemo(); return; }
+
+  // Extraer solo el File ID si viene URL completa
+  const idMatch = fileId.match(/[-\w]{25,}/);
+  const id = idMatch ? idMatch[0] : fileId;
+
+  // Estrategia: 3 formatos de URL de Drive, en orden de compatibilidad CORS
+  const candidates = [
+    // 1. drive.usercontent.google.com — mejor soporte CORS en 2025+
+    `https://drive.usercontent.google.com/download?id=${id}&export=download&authuser=0`,
+    // 2. availability.json local (mismo repo GitHub Pages) — fallback ideal
+    `./availability.json`,
+    // 3. formato clásico /uc
+    `https://drive.google.com/uc?export=download&id=${id}`,
+  ];
+
+  for (const url of candidates) {
+    try {
+      const resp = await fetch(url, { cache: "no-store" });
+      if (!resp.ok) continue;
+      const ct = resp.headers.get("content-type") || "";
+      // Drive a veces devuelve HTML de confirmación — rechazarlo
+      const text = await resp.text();
+      if (text.trim().startsWith("<")) continue;
+      const data = JSON.parse(text);
+      if (!data.slots) continue;
+      // ✅ Éxito — convertir a mapa
+      availability = {};
+      data.slots.forEach(slot => {
+        if (!availability[slot.fecha]) availability[slot.fecha] = {};
+        availability[slot.fecha][slot.hora] = slot.disponible;
       });
-    });
-    const todayKey = dateKey(new Date());
-    if (availability[todayKey]) {
-      generateSlots().slice(0, 2).forEach(s => { availability[todayKey][s] = false; });
+      console.log("✅ Datos cargados desde:", url);
+      return;
+    } catch(e) {
+      console.warn("❌ Falló:", url, e.message);
     }
-    return;
   }
-  try {
-    const resp = await fetch(jsonUrl);
-    if (!resp.ok) throw new Error("Drive fetch error " + resp.status);
-    const data = await resp.json();
-    // Convertir array de slots a mapa { fecha: { hora: disponible } }
-    availability = {};
-    (data.slots || []).forEach(slot => {
-      if (!availability[slot.fecha]) availability[slot.fecha] = {};
-      availability[slot.fecha][slot.hora] = slot.disponible;
+
+  // Todos fallaron → mostrar demo pero con mensaje claro
+  console.warn("⚠️ Sin conexión al JSON — mostrando disponibilidad demo");
+  loadDemo();
+}
+
+function loadDemo() {
+  generateDates().forEach(d => {
+    const key = dateKey(d);
+    availability[key] = {};
+    generateSlots().forEach(s => {
+      availability[key][s] = Math.random() > 0.3;
     });
-  } catch(e) {
-    console.error("JSON load error:", e);
-    availability = null;
+  });
+  const todayKey = dateKey(new Date());
+  if (availability[todayKey]) {
+    generateSlots().slice(0, 2).forEach(s => { availability[todayKey][s] = false; });
   }
 }
 
