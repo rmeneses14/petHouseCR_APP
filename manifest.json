@@ -1,0 +1,27 @@
+{
+  "name": "PetHouseCR — Estética Canina",
+  "short_name": "PetHouseCR",
+  "description": "Estética canina profesional en Costa Rica. Agenda tu cita online.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFF8EE",
+  "theme_color": "#7B4F9E",
+  "orientation": "portrait",
+  "lang": "es",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

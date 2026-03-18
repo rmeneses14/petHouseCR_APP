@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>PetHouseCR — Estética Canina</title>
+
+  <!-- ═══ PWA META TAGS ═══════════════════════════════════════ -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#7B4F9E" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="PetHouseCR" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180x180.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="icons/icon-120x120.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png" />
+  <meta name="msapplication-TileColor" content="#FFF8EE" />
+  <meta name="msapplication-TileImage" content="icons/icon-144x144.png" />
+  <!-- ══════════════════════════════════════════════════════════ -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Pacifico&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── VARIABLES ─────────────────────────────────────────── */
+    :root {
+      --cream:        #FFF8EE;
+      --yellow-soft:  #FFF3C4;
+      --blue-soft:    #D6EAF4;
+      --brown-dark:   #3B1F0E;
+      --brown-mid:    #7B4A2D;
+      --orange-warm:  #E8813A;
+      --purple-soft:  #C9A7D8;
+      --purple-deep:  #7B4F9E;
+      --pink-light:   #F4C6D7;
+      --pink-deep:    #D4698A;
+      --text-dark:    #2C1A0E;
+      --text-mid:     #6B4226;
+      --white:        #FFFFFF;
+      --safe-top:     env(safe-area-inset-top, 0px);
+      --safe-bottom:  env(safe-area-inset-bottom, 0px);
+      --safe-left:    env(safe-area-inset-left, 0px);
+      --safe-right:   env(safe-area-inset-right, 0px);
+    }
+
+    /* ── RESET & BASE ──────────────────────────────────────── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text-dark);
+      overflow-x: hidden;
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+      padding-left: var(--safe-left);
+      padding-right: var(--safe-right);
+    }
+
+    /* ── PAW CANVAS (fondo animado) ────────────────────────── */
+    #paw-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAVBAR ────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: var(--safe-top);
+      left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(255,248,238,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(123,74,45,0.1);
+      transition: box-shadow 0.3s ease;
+    }
+
+    .nav-logo {
+      font-family: 'Pacifico', cursive;
+      font-size: 1.6rem;
+      color: var(--purple-deep);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--orange-warm); }
+
+    .nav-links {
+      display: flex;
+      gap: 2.2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-mid);
+      text-decoration: none;
+      position: relative;
+      transition: color 0.2s;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 2px;
+      background: var(--orange-warm);
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+    .nav-links a:hover { color: var(--purple-deep); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-cta {
+      background: var(--purple-deep) !important;
+      color: var(--white) !important;
+      padding: 0.45rem 1.2rem;
+      border-radius: 50px;
+      transition: background 0.2s, transform 0.2s !important;
+    }
+    .nav-cta:hover { background: var(--orange-warm) !important; transform: translateY(-1px); }
+    .nav-cta::after { display: none !important; }
+
+    /* ── HERO ──────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 8rem 4rem 4rem;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--cream) 0%, var(--yellow-soft) 55%, var(--blue-soft) 100%);
+      z-index: 1;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob1 { width:500px;height:500px;background:var(--purple-soft);opacity:.35;top:-100px;right:-100px;animation:blobFloat 8s ease-in-out infinite; }
+    .blob2 { width:300px;height:300px;background:var(--pink-light);opacity:.4;bottom:50px;left:-80px;animation:blobFloat 6s ease-in-out infinite reverse; }
+    .blob3 { width:200px;height:200px;background:var(--orange-warm);opacity:.12;top:40%;left:40%;animation:blobFloat 10s ease-in-out infinite 2s; }
+
+    @keyframes blobFloat {
+      0%,100% { transform:translate(0,0) scale(1); }
+      33% { transform:translate(20px,-20px) scale(1.05); }
+      66% { transform:translate(-15px,10px) scale(.95); }
+    }
+
+    .hero-text { position:relative; z-index:2; }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--white);
+      border: 1px solid var(--purple-soft);
+      padding: 0.4rem 1rem;
+      border-radius: 50px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--purple-deep);
+      letter-spacing: 0.05em;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 5.5vw, 5rem);
+      font-weight: 900;
+      line-height: 1.05;
+      color: var(--brown-dark);
+      margin-bottom: 0.5rem;
+      animation: fadeUp 0.7s ease 0.1s both;
+    }
+    .hero-title .accent { color: var(--purple-deep); font-style: italic; }
+    .hero-title .hl { position:relative; display:inline-block; }
+    .hero-title .hl::after {
+      content:'';
+      position:absolute;
+      bottom:4px; left:0; right:0;
+      height:8px;
+      background:var(--orange-warm);
+      opacity:.3;
+      border-radius:4px;
+      z-index:-1;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--text-mid);
+      font-weight: 300;
+      line-height: 1.75;
+      max-width: 430px;
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.7s ease 0.2s both;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      animation: fadeUp 0.7s ease 0.3s both;
+    }
+
+    .btn-primary {
+      background: var(--purple-deep);
+      color: var(--white);
+      padding: 0.85rem 2rem;
+      border-radius: 50px;
+      font-size: 0.92rem;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 20px rgba(123,79,158,.3);
+      min-height: 44px;
+    }
+    .btn-primary:hover { background:var(--orange-warm); transform:translateY(-2px); box-shadow:0 6px 25px rgba(232,129,58,.35); }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--purple-deep);
+      padding: 0.85rem 2rem;
+      border-radius: 50px;
+      font-size: 0.92rem;
+      font-weight: 500;
+      text-decoration: none;
+      border: 2px solid var(--purple-soft);
+      transition: all 0.25s ease;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .btn-secondary:hover { border-color:var(--purple-deep); background:rgba(123,79,158,.06); }
+
+    .hero-stats {
+      display: flex;
+      gap: 2rem;
+      margin-top: 3rem;
+      animation: fadeUp 0.7s ease 0.4s both;
+    }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--purple-deep);
+      line-height: 1;
+    }
+    .stat-label { font-size: 0.74rem; color: var(--text-mid); letter-spacing:.05em; margin-top:.2rem; }
+
+    /* Hero visual */
+    .hero-visual {
+      position: relative;
+      z-index: 2;
+      height: 580px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-img-main {
+      width: 320px; height: 400px;
+      object-fit: cover;
+      object-position: top;
+      border-radius: 180px 180px 100px 100px;
+      box-shadow: 0 30px 80px rgba(59,31,14,.25);
+      border: 5px solid var(--white);
+      animation: fadeUp 0.8s ease 0.2s both;
+      z-index: 2;
+      position: relative;
+    }
+    .hero-img-f1 {
+      position:absolute;
+      top:40px; right:-10px;
+      width:150px; height:150px;
+      object-fit:cover;
+      object-position:center top;
+      border-radius:50%;
+      border:4px solid var(--white);
+      box-shadow:0 15px 40px rgba(59,31,14,.2);
+      z-index:3;
+      animation:floatImg 5s ease-in-out infinite, fadeUp 0.8s ease 0.4s both;
+    }
+    .hero-img-f2 {
+      position:absolute;
+      bottom:60px; left:-20px;
+      width:120px; height:120px;
+      object-fit:cover;
+      object-position:center 60%;
+      border-radius:28px;
+      border:4px solid var(--white);
+      box-shadow:0 15px 40px rgba(59,31,14,.2);
+      z-index:3;
+      animation:floatImg 6s ease-in-out infinite 1s, fadeUp 0.8s ease 0.5s both;
+    }
+
+    @keyframes floatImg {
+      0%,100% { transform:translateY(0) rotate(-2deg); }
+      50% { transform:translateY(-12px) rotate(2deg); }
+    }
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(30px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* ── SECTION HEADERS ───────────────────────────────────── */
+    .section-header { text-align:center; margin-bottom:3.5rem; }
+    .section-tag {
+      display:inline-block;
+      font-size:.75rem;
+      font-weight:500;
+      letter-spacing:.15em;
+      text-transform:uppercase;
+      color:var(--orange-warm);
+      margin-bottom:.8rem;
+    }
+    .section-title {
+      font-family:'Playfair Display',serif;
+      font-size:clamp(1.9rem,4vw,3rem);
+      font-weight:900;
+      color:var(--brown-dark);
+      line-height:1.15;
+    }
+    .section-title em { color:var(--purple-deep); font-style:italic; }
+    .section-line {
+      width:60px; height:3px;
+      background:linear-gradient(90deg,var(--purple-deep),var(--orange-warm));
+      margin:1rem auto 0;
+      border-radius:3px;
+    }
+
+    /* ── PARALLAX BANNER ───────────────────────────────────── */
+    .parallax-banner {
+      height: 300px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .parallax-banner .pb-bg {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      will-change: transform;
+    }
+    .parallax-banner .pb-overlay {
+      position:absolute;
+      inset:0;
+      background:linear-gradient(135deg,rgba(123,79,158,.72),rgba(59,31,14,.55));
+    }
+    .pb-content {
+      position:relative;
+      z-index:2;
+      text-align:center;
+      color:var(--white);
+      padding:0 1rem;
+    }
+    .pb-content h2 {
+      font-family:'Playfair Display',serif;
+      font-size:clamp(1.8rem,4.5vw,3rem);
+      font-weight:900;
+      font-style:italic;
+      margin-bottom:.8rem;
+      text-shadow:0 2px 20px rgba(0,0,0,.3);
+    }
+    .pb-content p { font-size:1rem; opacity:.9; max-width:480px; line-height:1.7; }
+
+    /* ── GALLERY ───────────────────────────────────────────── */
+    .gallery-section {
+      padding: 6rem 3rem;
+      background: var(--white);
+      position: relative;
+      z-index: 1;
+    }
+    .gallery-grid {
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:1rem;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    .gallery-item {
+      border-radius:20px;
+      overflow:hidden;
+      position:relative;
+      cursor:pointer;
+      transition:transform .35s ease, box-shadow .35s ease;
+      background:var(--blue-soft);
+      background-size:200% !important;
+    }
+    .gallery-item:hover { transform:translateY(-6px) scale(1.02); box-shadow:0 20px 50px rgba(59,31,14,.2); z-index:5; }
+    .gallery-item.tall { grid-row:span 2; }
+    .gallery-item.wide { grid-column:span 2; }
+    .g-inner { width:100%; height:100%; min-height:260px; background-size:cover !important; background-position:center !important; transition:transform .5s ease; }
+    .gallery-item:hover .g-inner { transform:scale(1.07); }
+    .gallery-overlay {
+      position:absolute; inset:0;
+      background:linear-gradient(to top,rgba(123,79,158,.85) 0%,transparent 65%);
+      opacity:0; transition:opacity .35s ease;
+      display:flex; align-items:flex-end; padding:1.2rem;
+    }
+    .gallery-item:hover .gallery-overlay { opacity:1; }
+    .gallery-overlay span { color:var(--white); font-size:.85rem; font-weight:500; }
+
+    .gimg1 .g-inner { background:url('Gemini_Generated_Image_4hl7sa4hl7sa4hl7.png') no-repeat; background-position:0% 0% !important; }
+    .gimg2 .g-inner { background:url('Gemini_Generated_Image_4hl7sa4hl7sa4hl7.png') no-repeat; background-position:100% 0% !important; }
+    .gimg3 .g-inner { background:url('Gemini_Generated_Image_4hl7sa4hl7sa4hl7.png') no-repeat; background-position:0% 55% !important; }
+    .gimg4 .g-inner { background:url('Gemini_Generated_Image_4hl7sa4hl7sa4hl7.png') no-repeat; background-position:100% 55% !important; }
+    .gimg5 .g-inner { background:url('Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png') no-repeat; background-position:0% 0% !important; }
+    .gimg6 .g-inner { background:url('Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png') no-repeat; background-position:100% 0% !important; }
+    .gimg7 .g-inner { background:url('Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png') no-repeat; background-position:0% 100% !important; }
+    .gimg8 .g-inner { background:url('Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png') no-repeat; background-position:100% 100% !important; }
+
+    /* ── SERVICES ──────────────────────────────────────────── */
+    .services-section {
+      padding:6rem 3rem;
+      background:linear-gradient(160deg,var(--cream) 0%,var(--yellow-soft) 100%);
+      position:relative; z-index:1;
+    }
+    .services-grid {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:1.5rem;
+      max-width:1100px;
+      margin:0 auto;
+    }
+    .service-card {
+      background:var(--white);
+      border-radius:24px;
+      padding:2rem;
+      position:relative;
+      overflow:hidden;
+      transition:transform .3s ease, box-shadow .3s ease;
+      border:1px solid rgba(123,79,158,.1);
+    }
+    .service-card:hover { transform:translateY(-5px); box-shadow:0 20px 50px rgba(123,79,158,.15); }
+    .service-card::before {
+      content:'';
+      position:absolute;
+      top:0; left:0; right:0;
+      height:4px;
+      background:linear-gradient(90deg,var(--purple-deep),var(--orange-warm));
+    }
+    .service-icon { font-size:2.5rem; margin-bottom:1rem; display:block; }
+    .service-title { font-family:'Playfair Display',serif; font-size:1.25rem; font-weight:700; color:var(--brown-dark); margin-bottom:.55rem; }
+    .service-desc { font-size:.87rem; color:var(--text-mid); line-height:1.7; }
+    .service-price { margin-top:1rem; font-size:.84rem; font-weight:500; color:var(--purple-deep); }
+
+    /* ── MID BANNER ────────────────────────────────────────── */
+    .mid-banner {
+      background:linear-gradient(135deg,var(--blue-soft) 0%,var(--yellow-soft) 50%,var(--pink-light) 100%);
+      padding:4rem 2rem;
+      text-align:center;
+      position:relative;
+      z-index:1;
+    }
+    .mid-banner h3 {
+      font-family:'Playfair Display',serif;
+      font-size:clamp(1.8rem,4vw,2.8rem);
+      color:var(--brown-dark);
+      font-weight:900;
+      margin-bottom:.5rem;
+    }
+    .mid-banner h3 em { color:var(--purple-deep); font-style:italic; }
+    .mid-banner p { color:var(--text-mid); font-size:1rem; }
+
+    /* ── CALENDAR ──────────────────────────────────────────── */
+    .calendar-section {
+      padding:6rem 3rem;
+      background:var(--white);
+      position:relative; z-index:1;
+    }
+    .calendar-wrapper { max-width:1000px; margin:0 auto; }
+    .cal-days-nav {
+      display:flex;
+      gap:.6rem;
+      overflow-x:auto;
+      padding-bottom:1rem;
+      scrollbar-width:none;
+      margin-bottom:2rem;
+    }
+    .cal-days-nav::-webkit-scrollbar { display:none; }
+    .day-pill {
+      flex-shrink:0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:.75rem 1rem;
+      border-radius:16px;
+      background:var(--cream);
+      border:2px solid transparent;
+      cursor:pointer;
+      transition:all .2s ease;
+      min-width:64px;
+      min-height:44px;
+    }
+    .day-pill:hover { border-color:var(--purple-soft); }
+    .day-pill.active { background:var(--purple-deep); color:var(--white); box-shadow:0 6px 20px rgba(123,79,158,.35); }
+    .day-pill .d-name { font-size:.68rem; font-weight:500; letter-spacing:.08em; text-transform:uppercase; opacity:.7; }
+    .day-pill .d-num { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:700; line-height:1.1; }
+    .day-pill .d-mon { font-size:.62rem; opacity:.6; text-transform:uppercase; letter-spacing:.05em; }
+    .day-pill.active .d-name, .day-pill.active .d-mon { opacity:.8; }
+
+    .slots-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(155px,1fr));
+      gap:1rem;
+    }
+    .slot-card {
+      border-radius:16px;
+      padding:1.2rem 1rem;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:.4rem;
+      cursor:pointer;
+      transition:all .25s ease;
+      border:2px solid transparent;
+      text-decoration:none;
+      min-height:44px;
+    }
+    .slot-card.available {
+      background:linear-gradient(135deg,var(--yellow-soft),var(--cream));
+      border-color:var(--purple-soft);
+      color:var(--brown-dark);
+    }
+    .slot-card.available:hover {
+      background:linear-gradient(135deg,var(--purple-deep),var(--pink-deep));
+      border-color:var(--purple-deep);
+      color:var(--white);
+      transform:translateY(-4px);
+      box-shadow:0 12px 30px rgba(123,79,158,.3);
+    }
+    .slot-card.available:hover .slot-action { color:var(--white); }
+    .slot-card.unavailable {
+      background:#f5f5f5;
+      border-color:#e0e0e0;
+      color:#bbb;
+      cursor:not-allowed;
+      opacity:.65;
+    }
+    .slot-icon { font-size:1.4rem; }
+    .slot-time { font-family:'Playfair Display',serif; font-size:1.45rem; font-weight:700; line-height:1; }
+    .slot-period { font-size:.68rem; font-weight:500; letter-spacing:.08em; text-transform:uppercase; opacity:.65; }
+    .slot-action { font-size:.7rem; font-weight:500; color:var(--purple-deep); margin-top:.2rem; transition:color .2s; }
+    .slot-card.unavailable .slot-action { color:#bbb; }
+
+    .cal-loading { text-align:center; padding:3rem; color:var(--text-mid); font-size:.9rem; }
+    .spinner { width:36px;height:36px;border:3px solid var(--purple-soft);border-top-color:var(--purple-deep);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .cal-error {
+      background:#fff3f3;border:1px solid #ffcdd2;border-radius:12px;
+      padding:1.5rem;text-align:center;color:#c62828;font-size:.88rem;
+    }
+    .no-slots-msg { text-align:center;padding:2rem;color:var(--text-mid);font-size:.9rem;background:var(--cream);border-radius:16px;grid-column:1/-1; }
+
+    /* ── FOOTER ────────────────────────────────────────────── */
+    footer {
+      background:var(--brown-dark);
+      color:rgba(255,255,255,.8);
+      padding:4rem 3rem 2rem;
+      position:relative; z-index:1;
+    }
+    .footer-grid {
+      display:grid;
+      grid-template-columns:1.5fr 1fr 1fr;
+      gap:3rem;
+      max-width:1100px;
+      margin:0 auto;
+      padding-bottom:3rem;
+      border-bottom:1px solid rgba(255,255,255,.1);
+    }
+    .footer-logo { font-family:'Pacifico',cursive; font-size:1.8rem; color:var(--white); margin-bottom:1rem; display:block; }
+    .footer-logo span { color:var(--orange-warm); }
+    .footer-brand p { font-size:.87rem; line-height:1.7; opacity:.7; max-width:280px; }
+    .footer-title { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; color:var(--white); margin-bottom:1rem; }
+    .footer-links { list-style:none; display:flex; flex-direction:column; gap:.6rem; }
+    .footer-links a { color:rgba(255,255,255,.65); text-decoration:none; font-size:.87rem; transition:color .2s; }
+    .footer-links a:hover { color:var(--orange-warm); }
+    .footer-contact-item { display:flex; align-items:center; gap:.6rem; font-size:.84rem; color:rgba(255,255,255,.65); margin-bottom:.6rem; }
+    .footer-bottom { text-align:center; padding-top:2rem; font-size:.77rem; opacity:.4; max-width:1100px; margin:0 auto; }
+
+    /* ── WA FAB ────────────────────────────────────────────── */
+    .wa-fab {
+      position:fixed;
+      bottom:calc(2rem + var(--safe-bottom));
+      right:2rem;
+      width:58px; height:58px;
+      background:#25D366;
+      border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 6px 25px rgba(37,211,102,.45);
+      z-index:200;
+      text-decoration:none;
+      font-size:1.6rem;
+      transition:transform .2s ease, box-shadow .2s ease;
+      animation:waPulse 3s ease-in-out infinite 3s;
+    }
+    .wa-fab:hover { transform:scale(1.1); box-shadow:0 8px 30px rgba(37,211,102,.55); }
+    @keyframes waPulse {
+      0%,100% { box-shadow:0 6px 25px rgba(37,211,102,.45); }
+      50% { box-shadow:0 6px 25px rgba(37,211,102,.45),0 0 0 14px rgba(37,211,102,.1); }
+    }
+
+    /* ── PWA INSTALL ───────────────────────────────────────── */
+    #pwa-install-btn {
+      position:fixed;
+      bottom:calc(20px + var(--safe-bottom));
+      right:90px;
+      z-index:201;
+      background:var(--purple-deep);
+      color:var(--white);
+      border:none;
+      padding:.7rem 1.4rem;
+      border-radius:50px;
+      font-size:.85rem;
+      font-weight:500;
+      cursor:pointer;
+      box-shadow:0 4px 20px rgba(123,79,158,.35);
+      transition:all .2s ease;
+      min-height:44px;
+    }
+    #pwa-install-btn:hover { background:var(--orange-warm); transform:translateY(-2px); }
+
+    /* ── SCROLL REVEAL ─────────────────────────────────────── */
+    .reveal { opacity:0; transform:translateY(40px); transition:opacity .7s ease,transform .7s ease; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    /* ── RESPONSIVE ────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      nav { padding:.9rem 1.5rem; }
+      .nav-links { display:none; }
+      .hero { grid-template-columns:1fr; padding:6rem 1.5rem 3rem; text-align:center; }
+      .hero-text { order:2; }
+      .hero-visual { order:1; height:320px; }
+      .hero-img-main { width:200px; height:260px; }
+      .hero-img-f1 { width:90px; height:90px; top:10px; right:10px; }
+      .hero-img-f2 { width:80px; height:80px; bottom:10px; left:10px; }
+      .hero-sub { margin:0 auto 2rem; }
+      .hero-buttons { justify-content:center; }
+      .hero-stats { justify-content:center; }
+      .gallery-grid { grid-template-columns:repeat(2,1fr); }
+      .gallery-item.wide,.gallery-item.tall { grid-column:span 1; grid-row:span 1; }
+      .services-grid { grid-template-columns:1fr; }
+      .footer-grid { grid-template-columns:1fr; gap:2rem; }
+      .calendar-section { padding:4rem 1.5rem; }
+      .gallery-section { padding:4rem 1.5rem; }
+      .services-section { padding:4rem 1.5rem; }
+    }
+
+    @media (max-width: 480px) {
+      .gallery-grid { grid-template-columns:1fr; }
+      .slots-grid { grid-template-columns:repeat(2,1fr); }
+      .hero-title { font-size:2.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Animated paw canvas -->
+<canvas id="paw-canvas"></canvas>
+
+<!-- ── NAV ─────────────────────────────────────────────────── -->
+<nav id="main-nav">
+  <a href="#" class="nav-logo">Pet<span>House</span>CR</a>
+  <ul class="nav-links">
+    <li><a href="#galeria">Galería</a></li>
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#reservas">Reservas</a></li>
+    <li><a href="#reservas" class="nav-cta">Agendar 🐾</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+
+  <div class="hero-text">
+    <div class="hero-badge">🐾 Estética Canina Profesional · Costa Rica</div>
+    <h1 class="hero-title">
+      Tu perrito<br>merece lo<br>
+      <span class="hl"><span class="accent">mejor</span></span>
+    </h1>
+    <p class="hero-sub">
+      En PetHouseCR cuidamos a tus peludos con amor y profesionalismo.
+      Baño, corte y mucho mimo para que luzcan radiantes cada día. 🐕
+    </p>
+    <div class="hero-buttons">
+      <a href="#reservas" class="btn-primary">✂️ Agendar cita</a>
+      <a href="#galeria" class="btn-secondary">Ver galería</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-num">500+</div>
+        <div class="stat-label">Perritos felices</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">5★</div>
+        <div class="stat-label">Calificación</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">3+</div>
+        <div class="stat-label">Años</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <img src="Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png" alt="Perrito PetHouseCR" class="hero-img-main" />
+    <img src="Gemini_Generated_Image_4hl7sa4hl7sa4hl7.png" alt="Pomeranian" class="hero-img-f1" />
+    <img src="Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png" alt="Pomeranian styled" class="hero-img-f2" />
+  </div>
+</section>
+
+<!-- ── PARALLAX BANNER 1 ─────────────────────────────────── -->
+<div class="parallax-banner" id="pb1">
+  <div class="pb-bg" style="background-image:url('Gemini_Generated_Image_4hl7sa4hl7sa4hl7.png');" id="pb1bg"></div>
+  <div class="pb-overlay"></div>
+  <div class="pb-content">
+    <h2>Cada peludo es único</h2>
+    <p>Cortes personalizados según raza, tamaño y personalidad 🐩</p>
+  </div>
+</div>
+
+<!-- ── GALLERY ──────────────────────────────────────────────── -->
+<section class="gallery-section" id="galeria">
+  <div class="section-header reveal">
+    <span class="section-tag">✨ Transformaciones reales</span>
+    <h2 class="section-title">Nuestra <em>galería</em></h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="gallery-grid reveal">
+    <div class="gallery-item tall gimg1"><div class="g-inner"></div><div class="gallery-overlay"><span>🐾 Antes y después</span></div></div>
+    <div class="gallery-item gimg2"><div class="g-inner"></div><div class="gallery-overlay"><span>🎃 Look especial</span></div></div>
+    <div class="gallery-item gimg3"><div class="g-inner"></div><div class="gallery-overlay"><span>✂️ Corte clásico</span></div></div>
+    <div class="gallery-item wide gimg4"><div class="g-inner"></div><div class="gallery-overlay"><span>🐕 Spitz alemán</span></div></div>
+    <div class="gallery-item gimg5"><div class="g-inner"></div><div class="gallery-overlay"><span>🌟 Top look</span></div></div>
+    <div class="gallery-item tall gimg6"><div class="g-inner"></div><div class="gallery-overlay"><span>🐾 Pelito perfecto</span></div></div>
+    <div class="gallery-item gimg7"><div class="g-inner"></div><div class="gallery-overlay"><span>💜 Con amor</span></div></div>
+    <div class="gallery-item gimg8"><div class="g-inner"></div><div class="gallery-overlay"><span>🛁 Baño completo</span></div></div>
+  </div>
+</section>
+
+<!-- ── SERVICES ─────────────────────────────────────────────── -->
+<section class="services-section" id="servicios">
+  <div class="section-header reveal">
+    <span class="section-tag">🐾 Lo que hacemos</span>
+    <h2 class="section-title">Nuestros <em>servicios</em></h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="services-grid">
+    <div class="service-card reveal">
+      <span class="service-icon">🛁</span>
+      <div class="service-title">Baño completo</div>
+      <div class="service-desc">Baño con shampoo premium, secado profesional y perfume especial para un peludo impecable y oloroso.</div>
+      <div class="service-price">Desde ₡8,000</div>
+    </div>
+    <div class="service-card reveal" style="transition-delay:.1s">
+      <span class="service-icon">✂️</span>
+      <div class="service-title">Corte de pelo</div>
+      <div class="service-desc">Corte personalizado según la raza y estilo deseado. Tijeras profesionales y mucho cariño en cada snip.</div>
+      <div class="service-price">Desde ₡12,000</div>
+    </div>
+    <div class="service-card reveal" style="transition-delay:.2s">
+      <span class="service-icon">💅</span>
+      <div class="service-title">Arreglo completo</div>
+      <div class="service-desc">Paquete premium: baño, corte, limpieza de oídos, corte de uñas y moñito o pañuelo incluido.</div>
+      <div class="service-price">Desde ₡18,000</div>
+    </div>
+    <div class="service-card reveal" style="transition-delay:.3s">
+      <span class="service-icon">🦷</span>
+      <div class="service-title">Limpieza dental</div>
+      <div class="service-desc">Limpieza dental con cepillo y pasta especial para mascotas. Aliento fresco para todos los besitos.</div>
+      <div class="service-price">Desde ₡5,000</div>
+    </div>
+    <div class="service-card reveal" style="transition-delay:.4s">
+      <span class="service-icon">🐾</span>
+      <div class="service-title">Corte de uñas</div>
+      <div class="service-desc">Corte seguro y preciso para evitar lesiones. Servicio rápido y sin estrés para tu mascota.</div>
+      <div class="service-price">Desde ₡3,000</div>
+    </div>
+    <div class="service-card reveal" style="transition-delay:.5s">
+      <span class="service-icon">🎀</span>
+      <div class="service-title">Spa canino</div>
+      <div class="service-desc">Experiencia de relajación completa con masajes, mascarilla capilar y aromaterapia pet-friendly.</div>
+      <div class="service-price">Desde ₡25,000</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MID BANNER ────────────────────────────────────────────── -->
+<div class="mid-banner">
+  <h3>Reserva tu cita <em>fácil</em></h3>
+  <p>Selecciona día y hora — te contactamos por WhatsApp 💬</p>
+</div>
+
+<!-- ── CALENDAR ──────────────────────────────────────────────── -->
+<section class="calendar-section" id="reservas">
+  <div class="section-header reveal">
+    <span class="section-tag">📅 Agenda en línea</span>
+    <h2 class="section-title">Reserva tu <em>cita</em></h2>
+    <div class="section-line"></div>
+    <p style="margin-top:1rem;color:var(--text-mid);font-size:.9rem;">
+      Selecciona el día y luego el horario. Te confirmaremos por WhatsApp. 🐾
+    </p>
+  </div>
+  <div class="calendar-wrapper reveal">
+    <div class="cal-days-nav" id="calDaysNav"></div>
+    <div id="calSlots">
+      <div class="cal-loading"><div class="spinner"></div>Cargando disponibilidad...</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PARALLAX BANNER 2 ─────────────────────────────────── -->
+<div class="parallax-banner" id="pb2">
+  <div class="pb-bg" style="background-image:url('Gemini_Generated_Image_qc2u6zqc2u6zqc2u.png');" id="pb2bg"></div>
+  <div class="pb-overlay" style="background:linear-gradient(135deg,rgba(232,129,58,.7),rgba(59,31,14,.6));"></div>
+  <div class="pb-content">
+    <h2>Belleza que se nota</h2>
+    <p>Peludos felices, dueños tranquilos — esa es nuestra misión 🧡</p>
+  </div>
+</div>
+
+<!-- ── FOOTER ─────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <span class="footer-logo">Pet<span>House</span>CR</span>
+      <p>Estética canina con amor y profesionalismo en Costa Rica. Tu peludo se merece lo mejor. 🐾</p>
+    </div>
+    <div>
+      <div class="footer-title">Navegación</div>
+      <ul class="footer-links">
+        <li><a href="#galeria">Galería de perritos</a></li>
+        <li><a href="#servicios">Nuestros servicios</a></li>
+        <li><a href="#reservas">Reservar cita</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-title">Contacto</div>
+      <div class="footer-contact-item">📍 San José, Costa Rica</div>
+      <div class="footer-contact-item">📱 +506 8888-7777</div>
+      <div class="footer-contact-item">🕐 Lun–Dom: 8AM – 5PM</div>
+      <div class="footer-contact-item">💬 WhatsApp disponible</div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © 2026 PetHouseCR — Hecho con 💜 para los peludos de Costa Rica.
+  </div>
+</footer>
+
+<!-- WhatsApp FAB -->
+<a href="https://wa.me/50660188490?text=Hola!%20Quiero%20más%20información%20sobre%20PetHouseCR%20🐾"
+   target="_blank" rel="noopener" class="wa-fab" title="WhatsApp">💬</a>
+
+<!-- PWA install button -->
+<button id="pwa-install-btn" hidden onclick="pwaInstall()">📲 Instalar App</button>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  CONFIG — solo editar estas variables
+// ════════════════════════════════════════════════════════════
+const WA_NUMBER = "50660188490"; // WhatsApp PetHouseCR
+
+// URL del JSON en Google Drive cifrada con XOR+Base64
+const SHEET_KEY = 42;
+const SHEET_ENCODED = "Ql5eWlkQBQVOWENcTwRNRUVNRk8ESUVHBV9JFU9SWkVYXhdORV1ERkVLTgxDThcbT2N5B3hDRVxHdVt9WmR5WGkaeVtcH3xEWUIdZFpCUxo=";
+
+const OPEN_HOUR  = 8;   // 8:00 AM
+const CLOSE_HOUR = 17;  // última cita 4:00 PM (no incluye 17)
+const DAYS_AHEAD = 14;
+
+// ════════════════════════════════════════════════════════════
+//  CIFRADO XOR (obfusca la URL del Sheet en el HTML)
+// ════════════════════════════════════════════════════════════
+function xorCipher(str, key) {
+  return str.split('').map(c =>
+    String.fromCharCode(c.charCodeAt(0) ^ key)
+  ).join('');
+}
+function encodeSheetUrl(url) {
+  // Llamar desde consola para obtener el valor a pegar en SHEET_ENCODED
+  const encoded = btoa(xorCipher(url, SHEET_KEY));
+  console.log("SHEET_ENCODED:", encoded);
+  return encoded;
+}
+function decodeSheetUrl(encoded) {
+  if (!encoded) return "";
+  return xorCipher(atob(encoded), SHEET_KEY);
+}
+
+// ════════════════════════════════════════════════════════════
+//  CALENDAR CONFIG
+// ════════════════════════════════════════════════════════════
+const DAYS_ES   = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const MONTHS_ES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const MONTHS_FULL = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const WEEK_FULL   = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+
+let availability = {};
+
+function dateKey(d) {
+  return d.toISOString().split("T")[0];
+}
+function formatDateLong(d) {
+  return `${WEEK_FULL[d.getDay()]} ${d.getDate()} de ${MONTHS_FULL[d.getMonth()]}`;
+}
+function generateDates() {
+  const dates = [];
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = 0; i < DAYS_AHEAD; i++) {
+    const d = new Date(today); d.setDate(today.getDate() + i);
+    dates.push(d);
+  }
+  return dates;
+}
+function generateSlots() {
+  const slots = [];
+  for (let h = OPEN_HOUR; h < CLOSE_HOUR; h++) {
+    slots.push(String(h).padStart(2,"0") + ":00");
+  }
+  return slots;
+}
+function parseCSV(csv) {
+  const lines = csv.trim().split("\n");
+  const result = {};
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(",").map(c => c.trim().replace(/"/g,""));
+    if (cols.length < 3) continue;
+    const [fecha, hora, disponible] = cols;
+    if (!fecha || !hora) continue;
+    if (!result[fecha]) result[fecha] = {};
+    result[fecha][hora] = disponible.toUpperCase() === "TRUE";
+  }
+  return result;
+}
+function formatHour(h) {
+  const num = parseInt(h.split(":")[0]);
+  const period = num < 12 ? "AM" : "PM";
+  const display = num <= 12 ? num : num - 12;
+  return { display: String(display).padStart(2,"0") + ":00", period };
+}
+
+async function loadAvailability() {
+  const jsonUrl = decodeSheetUrl(SHEET_ENCODED);
+  if (!jsonUrl) {
+    // DEMO: disponibilidad aleatoria
+    generateDates().forEach(d => {
+      const key = dateKey(d);
+      availability[key] = {};
+      generateSlots().forEach(s => {
+        availability[key][s] = Math.random() > 0.3;
+      });
+    });
+    const todayKey = dateKey(new Date());
+    if (availability[todayKey]) {
+      generateSlots().slice(0, 2).forEach(s => { availability[todayKey][s] = false; });
+    }
+    return;
+  }
+  try {
+    const resp = await fetch(jsonUrl);
+    if (!resp.ok) throw new Error("Drive fetch error " + resp.status);
+    const data = await resp.json();
+    // Convertir array de slots a mapa { fecha: { hora: disponible } }
+    availability = {};
+    (data.slots || []).forEach(slot => {
+      if (!availability[slot.fecha]) availability[slot.fecha] = {};
+      availability[slot.fecha][slot.hora] = slot.disponible;
+    });
+  } catch(e) {
+    console.error("JSON load error:", e);
+    availability = null;
+  }
+}
+
+function renderDayPills(dates) {
+  const nav = document.getElementById("calDaysNav");
+  nav.innerHTML = "";
+  dates.forEach((d, i) => {
+    const key = dateKey(d);
+    const pill = document.createElement("div");
+    pill.className = "day-pill" + (i === 0 ? " active" : "");
+    pill.dataset.key = key;
+    pill.innerHTML = `
+      <span class="d-name">${DAYS_ES[d.getDay()]}</span>
+      <span class="d-num">${d.getDate()}</span>
+      <span class="d-mon">${MONTHS_ES[d.getMonth()]}</span>`;
+    pill.addEventListener("click", () => {
+      document.querySelectorAll(".day-pill").forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+      renderSlots(key, d);
+    });
+    nav.appendChild(pill);
+  });
+}
+
+function renderSlots(dKey, dateObj) {
+  const container = document.getElementById("calSlots");
+  if (!availability) {
+    container.innerHTML = `<div class="cal-error">⚠️ Sin conexión. <a href="https://wa.me/${WA_NUMBER}" style="color:var(--purple-deep);font-weight:600;">💬 WhatsApp</a></div>`;
+    return;
+  }
+  const dayData = availability[dKey] || {};
+  const slots = generateSlots();
+  let html = `<div class="slots-grid">`;
+  slots.forEach(slot => {
+    const avail = dayData[slot] !== false;
+    const { display, period } = formatHour(slot);
+    const waMsg = encodeURIComponent(
+      `Hola PetHouseCR! 🐾 Quiero reservar el *${formatDateLong(dateObj)}* a las *${display} ${period}*.\n\nNombre del perrito: \nRaza: `
+    );
+    const waLink = `https://wa.me/${WA_NUMBER}?text=${waMsg}`;
+    if (avail) {
+      html += `<a class="slot-card available" href="${waLink}" target="_blank" rel="noopener">
+        <span class="slot-icon">🐾</span>
+        <span class="slot-time">${display}</span>
+        <span class="slot-period">${period}</span>
+        <span class="slot-action">Reservar por WhatsApp →</span>
+      </a>`;
+    } else {
+      html += `<div class="slot-card unavailable">
+        <span class="slot-icon">🚫</span>
+        <span class="slot-time">${display}</span>
+        <span class="slot-period">${period}</span>
+        <span class="slot-action">No disponible</span>
+      </div>`;
+    }
+  });
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+async function initCalendar() {
+  await loadAvailability();
+  const dates = generateDates();
+  renderDayPills(dates);
+  renderSlots(dateKey(dates[0]), dates[0]);
+}
+
+// ════════════════════════════════════════════════════════════
+//  ANIMATED PAW PRINTS — stepping footsteps across screen
+// ════════════════════════════════════════════════════════════
+(function initPawCanvas() {
+  const canvas = document.getElementById("paw-canvas");
+  const ctx    = canvas.getContext("2d");
+
+  // Resize canvas to viewport
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener("resize", resize, { passive: true });
+
+  // ── Draw one paw print ──────────────────────────────────
+  // s = size, angle = walking direction, alpha, isRight = left/right paw
+  function drawPaw(x, y, s, angle, alpha, isRight) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
+    ctx.rotate(angle + (isRight ? 0.18 : -0.18)); // toe-out angle
+
+    const color = Math.random() < 0.5 ? "#7B4F9E" : "#D4698A"; // purple or pink
+
+    // ── Main metacarpal pad (heart-shaped base) ───────────
+    ctx.beginPath();
+    ctx.ellipse(0, s * 0.05, s * 0.52, s * 0.62, 0, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    // ── 4 digital pads (toes) ─────────────────────────────
+    // Staggered heights: outer toes lower than inner
+    const toes = [
+      { dx: -s*0.52, dy: -s*0.50, rx: s*0.22, ry: s*0.26, rot:  0.35 },
+      { dx: -s*0.20, dy: -s*0.78, rx: s*0.24, ry: s*0.27, rot:  0.10 },
+      { dx:  s*0.20, dy: -s*0.78, rx: s*0.24, ry: s*0.27, rot: -0.10 },
+      { dx:  s*0.52, dy: -s*0.50, rx: s*0.22, ry: s*0.26, rot: -0.35 },
+    ];
+    toes.forEach(({ dx, dy, rx, ry, rot }) => {
+      ctx.save();
+      ctx.translate(dx, dy);
+      ctx.rotate(rot);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.restore();
+    });
+
+    ctx.restore();
+  }
+
+  // ── Build one walking trail ─────────────────────────────
+  // Each trail = alternating left/right paw prints that
+  // march in a straight-ish line across the canvas
+  const STEPS     = 20;   // paw prints per trail
+  const STEP_MS   = 280;  // ms between each footfall
+  const FADE_IN   = 350;  // ms to appear
+  const HOLD_MS   = 2800; // ms at full opacity
+  const FADE_OUT  = 1400; // ms to disappear
+
+  function makeTrail() {
+    // Pick a random entry edge
+    const edge = Math.floor(Math.random() * 4);
+    let sx, sy, baseAngle;
+    const W = canvas.width, H = canvas.height;
+
+    if      (edge === 0) { sx = Math.random() * W;  sy = -30;    baseAngle =  Math.PI * 0.5 + (Math.random()-.5) * 0.7; }
+    else if (edge === 1) { sx = W + 30;              sy = Math.random() * H; baseAngle =  Math.PI     + (Math.random()-.5) * 0.7; }
+    else if (edge === 2) { sx = Math.random() * W;  sy = H + 30; baseAngle = -Math.PI * 0.5 + (Math.random()-.5) * 0.7; }
+    else                 { sx = -30;                 sy = Math.random() * H; baseAngle =  0           + (Math.random()-.5) * 0.7; }
+
+    const size      = 10 + Math.random() * 12;       // paw size px
+    const stride    = size * 3.2;                     // distance between steps
+    const sideStep  = size * 0.55;                    // lateral offset left/right
+    const wander    = 0.09;                           // path curvature per step
+
+    const steps = [];
+    let cx = sx, cy = sy, ca = baseAngle;
+
+    for (let i = 0; i < STEPS; i++) {
+      ca += (Math.random() - 0.5) * wander;
+      cx += Math.cos(ca) * stride;
+      cy += Math.sin(ca) * stride;
+
+      const isRight = i % 2 === 0;
+      const perpAngle = ca + Math.PI / 2;
+      const lateralSign = isRight ? 1 : -1;
+
+      steps.push({
+        x:       cx + Math.cos(perpAngle) * sideStep * lateralSign,
+        y:       cy + Math.sin(perpAngle) * sideStep * lateralSign,
+        angle:   ca,
+        size,
+        isRight,
+        born:    0,               // timestamp when revealed
+        alpha:   0,
+        peak:    0.06 + Math.random() * 0.06, // max opacity (subtle on light bg)
+      });
+    }
+    return { steps, idx: 0, ticker: 0 };
+  }
+
+  // ── Trail pool ──────────────────────────────────────────
+  const MAX_TRAILS    = 5;
+  const SPAWN_INTERVAL = 2600; // ms between new trails
+  const trails = [];
+
+  function spawnTrail() {
+    if (trails.length < MAX_TRAILS) trails.push(makeTrail());
+  }
+  spawnTrail();
+  setInterval(spawnTrail, SPAWN_INTERVAL);
+
+  // ── Render loop ─────────────────────────────────────────
+  let prevTs = 0;
+
+  function loop(ts) {
+    const dt = Math.min(ts - prevTs, 100); // cap dt to avoid jump on tab restore
+    prevTs = ts;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let t = trails.length - 1; t >= 0; t--) {
+      const trail = trails[t];
+      trail.ticker += dt;
+
+      // Reveal one new paw print every STEP_MS ms
+      if (trail.ticker >= STEP_MS && trail.idx < trail.steps.length) {
+        trail.steps[trail.idx].born = ts;
+        trail.idx++;
+        trail.ticker -= STEP_MS; // keep remainder for tight rhythm
+      }
+
+      let anyVisible = false;
+
+      trail.steps.forEach(p => {
+        if (p.born === 0) return; // not yet revealed
+
+        const age = ts - p.born;
+
+        if        (age < FADE_IN)              { p.alpha = (age / FADE_IN) * p.peak; }
+        else if   (age < FADE_IN + HOLD_MS)    { p.alpha = p.peak; }
+        else {
+          const fadeAge = age - FADE_IN - HOLD_MS;
+          p.alpha = Math.max(0, p.peak * (1 - fadeAge / FADE_OUT));
+        }
+
+        if (p.alpha > 0.001) {
+          drawPaw(p.x, p.y, p.size, p.angle, p.alpha, p.isRight);
+          anyVisible = true;
+        }
+      });
+
+      // Remove trail once all prints have faded and all steps revealed
+      if (trail.idx >= trail.steps.length && !anyVisible) {
+        trails.splice(t, 1);
+      }
+    }
+
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+})();
+
+// ════════════════════════════════════════════════════════════
+//  PARALLAX
+// ════════════════════════════════════════════════════════════
+function initParallax() {
+  const sections = [
+    { wrap: document.getElementById("pb1"), bg: document.getElementById("pb1bg"), rate: 0.4 },
+    { wrap: document.getElementById("pb2"), bg: document.getElementById("pb2bg"), rate: 0.4 },
+  ];
+  function applyParallax() {
+    const scrollY = window.scrollY;
+    sections.forEach(({ wrap, bg, rate }) => {
+      const rect = wrap.getBoundingClientRect();
+      const offset = (rect.top + scrollY) * rate;
+      bg.style.transform = `translateY(${offset * 0.18}px) scale(1.15)`;
+    });
+  }
+  window.addEventListener("scroll", applyParallax, { passive: true });
+  applyParallax();
+}
+
+// ════════════════════════════════════════════════════════════
+//  SCROLL REVEAL
+// ════════════════════════════════════════════════════════════
+function initReveal() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("visible"); obs.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
+}
+
+// ════════════════════════════════════════════════════════════
+//  NAV SHADOW
+// ════════════════════════════════════════════════════════════
+window.addEventListener("scroll", () => {
+  document.getElementById("main-nav").style.boxShadow =
+    window.scrollY > 50 ? "0 4px 30px rgba(59,31,14,.12)" : "none";
+}, { passive: true });
+
+// ════════════════════════════════════════════════════════════
+//  PWA
+// ════════════════════════════════════════════════════════════
+let deferredPrompt = null;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById("pwa-install-btn").hidden = false;
+});
+function pwaInstall() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    document.getElementById("pwa-install-btn").hidden = true;
+  });
+}
+window.addEventListener("appinstalled", () => {
+  document.getElementById("pwa-install-btn").hidden = true;
+});
+
+// ════════════════════════════════════════════════════════════
+//  SERVICE WORKER
+// ════════════════════════════════════════════════════════════
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(console.error);
+}
+
+// ════════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => {
+  initCalendar();
+  initReveal();
+  initParallax();
+});
+</script>
+</body>
+</html>
