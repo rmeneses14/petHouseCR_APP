@@ -595,8 +595,14 @@
 //    1. Abre https://emn178.github.io/online-tools/sha256.html
 //    2. Escribe tu PIN → copia el hash → pégalo aquí
 //  GITHUB_RAW : URL raw del availability.json en tu repo
-const PIN_HASH   = "357c08aaae039838b09aeb5b1ea24dfdc71e482d1c3f6746c6b12e8fa8c5fd50";
-const GITHUB_RAW = "https://raw.githubusercontent.com/rmeneses14/PetHouseCR-APP/main/availability.json";
+const PIN_HASH    = "357c08aaae039838b09aeb5b1ea24dfdc71e482d1c3f6746c6b12e8fa8c5fd50";
+const GITHUB_RAW  = "https://raw.githubusercontent.com/rmeneses14/PetHouseCR-APP/main/availability.json";
+// GitHub API — token cifrado XOR+Base64 (clave 73)
+const _GK = 73;
+const _GT = "LiE5FhMFAwAoOC0aPwwoBRkCCid8J3wmPg8vKDAHHBk7KH0AfAQueQ==";
+const GITHUB_REPO = "rmeneses14/PetHouseCR-APP";
+const GITHUB_FILE = "availability.json";
+const GITHUB_BRANCH = "main";
 
 // ════════════════════════════════════════════════════════════
 //  LOGIN — SHA-256 puro, sin localStorage para el PIN
@@ -779,6 +785,73 @@ function getFechas(){const a=[],b=new Date();b.setHours(0,0,0,0);for(let i=0;i<D
 // ── STATE ──────────────────────────────────────────────────
 let db=null, selF=hoy(), dates=[];
 
+// ── TOKEN DECODER ──────────────────────────────────────────
+function getToken() {
+  return atob(_GT).split('').map(c => String.fromCharCode(c.charCodeAt(0) ^ _GK)).join('');
+}
+
+// ── GUARDAR EN GITHUB ───────────────────────────────────────
+let _fileSha = null; // SHA del archivo actual — requerido por GitHub API para updates
+
+async function guardarEnGitHub(mostrarToast = true) {
+  if (!db) return false;
+  db.meta.ultima_actualizacion = new Date().toISOString();
+
+  const token   = getToken();
+  const apiUrl  = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(db, null, 2))));
+
+  // Si no tenemos el SHA, obtenerlo primero
+  if (!_fileSha) {
+    try {
+      const r = await fetch(apiUrl, {
+        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
+      });
+      if (r.ok) {
+        const meta = await r.json();
+        _fileSha = meta.sha;
+      }
+    } catch(e) { console.warn("No se pudo obtener SHA:", e.message); }
+  }
+
+  const body = {
+    message: `Admin update ${new Date().toLocaleString("es-CR")}`,
+    content,
+    branch: GITHUB_BRANCH,
+    ..._fileSha && { sha: _fileSha }
+  };
+
+  try {
+    const resp = await fetch(apiUrl, {
+      method:  "PUT",
+      headers: {
+        "Authorization": `token ${token}`,
+        "Content-Type":  "application/json",
+        "Accept":        "application/vnd.github.v3+json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      console.error("GitHub API error:", err);
+      if (mostrarToast) toast("❌ Error al guardar: " + (err.message || resp.status), "err");
+      return false;
+    }
+
+    const result = await resp.json();
+    _fileSha = result.content?.sha || null; // actualizar SHA para próximo commit
+    if (mostrarToast) toast("✅ Guardado en GitHub", "ok");
+    setSS("ok", "Guardado · " + new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
+    return true;
+
+  } catch(e) {
+    console.error("guardarEnGitHub error:", e);
+    if (mostrarToast) toast("❌ Sin conexión al guardar", "err");
+    return false;
+  }
+}
+
 // ── CARGA ──────────────────────────────────────────────────
 async function cargar(){
   setSS("loading","Cargando...");
@@ -940,19 +1013,22 @@ function bloquear(f,h,bl){
   s.disponible=!bl;if(!bl)s.cita=null;
   db.meta.ultima_actualizacion=new Date().toISOString();
   refrescar();
-  toast(bl?"🚫 Hora bloqueada":"✅ Hora liberada",bl?"inf":"ok");
+  toast(bl?"🚫 Guardando...":"✅ Guardando...","inf");
+  guardarEnGitHub();
 }
 function bloquearDia(){
   if(!db)return;
   db.slots.filter(s=>s.fecha===selF&&s.disponible).forEach(s=>{s.disponible=false;});
   db.meta.ultima_actualizacion=new Date().toISOString();
-  refrescar();toast("🚫 Día completo bloqueado","inf");
+  refrescar();
+  guardarEnGitHub().then(ok => toast(ok?"🚫 Día bloqueado y guardado":"🚫 Bloqueado (sin conexión)",ok?"inf":"err"));
 }
 function liberarDia(){
   if(!db)return;
   db.slots.filter(s=>s.fecha===selF&&!s.disponible&&!s.cita).forEach(s=>{s.disponible=true;});
   db.meta.ultima_actualizacion=new Date().toISOString();
-  refrescar();toast("✅ Bloqueadas liberadas","ok");
+  refrescar();
+  guardarEnGitHub().then(ok => toast(ok?"✅ Liberadas y guardado":"✅ Liberadas (sin conexión)",ok?"ok":"err"));
 }
 
 // ── MODAL ──────────────────────────────────────────────────
@@ -990,7 +1066,8 @@ function guardarCita(){
   const s=getSlot(f,h);if(!s){toast("Horario no encontrado","err");return;}
   s.disponible=false;s.cita={perrito:p,raza:r,dueno:d,telefono:t};
   db.meta.ultima_actualizacion=new Date().toISOString();
-  cmo();refrescar();toast(`🐾 Cita de ${p} guardada`,"ok");
+  cmo();refrescar();
+  guardarEnGitHub().then(ok=>toast(ok?`🐾 Cita de ${p} guardada`:`🐾 Guardada (sin conexión)`,ok?"ok":"err"));
 }
 function eliminarCita(){
   const f=document.getElementById("mF").value,h=document.getElementById("mH").value;
@@ -998,7 +1075,8 @@ function eliminarCita(){
   const n=s.cita?.perrito||"la cita";
   s.disponible=true;s.cita=null;
   db.meta.ultima_actualizacion=new Date().toISOString();
-  cmo();refrescar();toast(`🗑 Cita de ${n} eliminada`,"inf");
+  cmo();refrescar();
+  guardarEnGitHub().then(ok=>toast(ok?`🗑 Cita de ${n} eliminada`:`🗑 Eliminada (sin conexión)`,ok?"inf":"err"));
 }
 
 // ── VISTAS ─────────────────────────────────────────────────
