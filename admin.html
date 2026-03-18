@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>PetHouseCR — Administración</title>
+  <meta name="theme-color" content="#7B4F9E"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="PetHouse Admin"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* ── Paleta alineada con el sitio cliente ── */
+      --bg:           #FFF8EE;          /* crema base — igual que el cliente */
+      --bg-card:      #FFFFFF;          /* blanco para cards */
+      --bg-panel:     #FFF3E8;          /* crema cálida para paneles */
+      --bg-input:     #FFF8EE;          /* crema para inputs */
+      --border:       rgba(123,79,158,.12);
+      --border-hi:    rgba(123,79,158,.35);
+      --purple:       #7B4F9E;          /* morado del cliente */
+      --purple-dim:   #C9A7D8;          /* morado suave */
+      --purple-glow:  rgba(123,79,158,.15);
+      --orange:       #E8813A;          /* naranja del cliente */
+      --orange-dim:   rgba(232,129,58,.12);
+      --green:        #2E9E75;
+      --green-dim:    rgba(46,158,117,.12);
+      --red:          #D4698A;          /* rosa del cliente en lugar de rojo */
+      --red-dim:      rgba(212,105,138,.12);
+      --yellow:       #E8813A;
+      --text:         #2C1A0E;          /* marrón oscuro del cliente */
+      --text-dim:     #7B4A2D;          /* marrón medio del cliente */
+      --text-bright:  #1A0A00;
+      --safe-top:     env(safe-area-inset-top,0px);
+      --safe-bottom:  env(safe-area-inset-bottom,0px);
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    html{scroll-behavior:smooth;}
+    body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+    ::-webkit-scrollbar{width:4px;height:4px;}
+    ::-webkit-scrollbar-track{background:var(--bg-panel);}
+    ::-webkit-scrollbar-thumb{background:var(--purple-dim);border-radius:4px;}
+
+    /* LAYOUT */
+    .shell{display:grid;grid-template-columns:240px 1fr;grid-template-rows:60px 1fr;min-height:100vh;}
+
+    /* TOPBAR */
+    .topbar{grid-column:1/-1;background:var(--bg-card);border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 1.5rem;padding-top:var(--safe-top);position:sticky;top:0;z-index:100;}
+    .tb-brand{display:flex;align-items:center;gap:.65rem;}
+    .tb-paw{width:34px;height:34px;background:linear-gradient(135deg,var(--purple),var(--orange));
+      border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+    .tb-name{font-size:1rem;font-weight:800;color:var(--text-bright);letter-spacing:-.02em;}
+    .tb-name span{color:var(--purple);}
+    .tb-pill{font-family:'JetBrains Mono',monospace;font-size:.6rem;background:var(--purple-glow);
+      color:var(--purple);padding:.12rem .45rem;border-radius:4px;border:1px solid rgba(123,79,158,.25);letter-spacing:.05em;}
+    .tb-right{display:flex;align-items:center;gap:.65rem;}
+    .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2.5s ease-in-out infinite;}
+    .sync-dot.loading{background:var(--yellow);box-shadow:0 0 6px var(--yellow);}
+    .sync-dot.error{background:var(--red);box-shadow:0 0 6px var(--red);animation:none;}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+    .sync-txt{font-size:.7rem;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
+    .menu-btn{display:none;width:34px;height:34px;border-radius:8px;border:1px solid var(--border);
+      background:var(--bg-panel);color:var(--text);cursor:pointer;align-items:center;justify-content:center;font-size:1rem;}
+    @media(max-width:768px){.menu-btn{display:flex;}}
+
+    /* SIDEBAR */
+    .sidebar{background:var(--bg-card);border-right:1px solid var(--border);
+      padding:1.25rem .85rem;display:flex;flex-direction:column;gap:.2rem;overflow-y:auto;}
+    .s-label{font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+      color:var(--text-dim);padding:.5rem .7rem .25rem;margin-top:.5rem;}
+    .s-item{display:flex;align-items:center;gap:.6rem;padding:.6rem .7rem;border-radius:10px;
+      cursor:pointer;font-size:.86rem;font-weight:500;color:var(--text-dim);border:1px solid transparent;
+      transition:all .18s;min-height:44px;}
+    .s-item:hover{background:var(--bg-panel);color:var(--text);}
+    .s-item.active{background:linear-gradient(135deg,rgba(123,79,158,.12),rgba(232,129,58,.07));
+      color:var(--purple);border-color:rgba(123,79,158,.25);}
+    .s-icon{font-size:.95rem;width:18px;text-align:center;flex-shrink:0;}
+    .s-badge{margin-left:auto;background:var(--orange);color:#FFFFFF;font-size:.6rem;font-weight:700;
+      padding:.1rem .4rem;border-radius:20px;min-width:18px;text-align:center;}
+    .s-badge.p{background:var(--purple);color:var(--bg);}
+    .s-stats{margin-top:auto;background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;padding:.9rem;}
+    .ss-h{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:.6rem;}
+    .ss-r{display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;}
+    .ss-l{font-size:.76rem;color:var(--text-dim);}
+    .ss-v{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:600;}
+    .cg{color:var(--green);} .co{color:var(--orange);} .cr{color:var(--red);} .cp{color:var(--purple);}
+
+    /* MAIN */
+    .main{overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem;}
+
+    /* PAGE HEADER */
+    .ph{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+    .ph-title{font-size:1.5rem;font-weight:800;color:var(--text-bright);letter-spacing:-.03em;line-height:1.1;}
+    .ph-sub{font-size:.8rem;color:var(--text-dim);margin-top:.25rem;}
+    .ph-act{display:flex;gap:.6rem;flex-wrap:wrap;}
+
+    /* KPIs */
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:.85rem;}
+    .kpi{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1rem 1.1rem;
+      position:relative;overflow:hidden;transition:border-color .2s,transform .2s;}
+    .kpi:hover{border-color:var(--border-hi);transform:translateY(-1px);}
+    .kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+    .kpi.kp::after{background:linear-gradient(90deg,var(--purple),transparent);}
+    .kpi.kg::after{background:linear-gradient(90deg,var(--green),transparent);}
+    .kpi.ko::after{background:linear-gradient(90deg,var(--orange),transparent);}
+    .kpi.kr::after{background:linear-gradient(90deg,var(--red),transparent);}
+    .kpi-ico{font-size:1.4rem;margin-bottom:.5rem;display:block;}
+    .kpi-val{font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:700;color:var(--purple);line-height:1;}
+    .kpi-lbl{font-size:.72rem;color:var(--text-dim);margin-top:.25rem;}
+
+    /* PANEL */
+    .panel{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+    .p-hd{padding:.9rem 1.2rem;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;}
+    .p-title{font-size:.92rem;font-weight:700;color:var(--text-bright);display:flex;align-items:center;gap:.45rem;}
+    .p-body{padding:1.2rem;}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1.1rem;border-radius:9px;
+      font-family:'Syne',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;border:none;
+      transition:all .18s;min-height:38px;white-space:nowrap;}
+    .bp{background:linear-gradient(135deg,var(--purple),var(--purple-dim));color:#fff;box-shadow:0 3px 12px var(--purple-glow);}
+    .bp:hover{filter:brightness(1.12);transform:translateY(-1px);}
+    .bg{background:var(--green-dim);color:var(--green);border:1px solid rgba(62,207,164,.25);}
+    .bg:hover{background:rgba(62,207,164,.25);}
+    .br{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,90,126,.25);}
+    .br:hover{background:rgba(255,90,126,.25);}
+    .bgh{background:transparent;color:var(--text);border:1px solid var(--border-hi);}
+    .bgh:hover{background:var(--bg-panel);border-color:var(--purple);color:var(--purple);}
+    .bsm{padding:.35rem .8rem;font-size:.76rem;min-height:32px;}
+    .btn:disabled{opacity:.35;cursor:not-allowed;}
+
+    /* DAY PILLS */
+    .day-row{display:flex;gap:.45rem;overflow-x:auto;padding-bottom:.6rem;scrollbar-width:none;margin-bottom:1.1rem;}
+    .day-row::-webkit-scrollbar{display:none;}
+    .dp{flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding:.55rem .8rem;
+      border-radius:11px;background:var(--bg-panel);border:1px solid var(--border);cursor:pointer;
+      transition:all .18s;min-width:54px;min-height:44px;position:relative;}
+    .dp:hover{border-color:var(--border-hi);}
+    .dp.active{background:linear-gradient(135deg,var(--purple),var(--purple-dim));border-color:var(--purple);box-shadow:0 4px 14px var(--purple-glow);}
+    .dp-n{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);}
+    .dp-d{font-family:'JetBrains Mono',monospace;font-size:1.25rem;font-weight:700;color:var(--text-bright);line-height:1.1;}
+    .dp-m{font-size:.58rem;color:var(--text-dim);text-transform:uppercase;}
+    .dp.active .dp-n,.dp.active .dp-m{color:rgba(255,255,255,.65);}
+    .dp-dot{position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--orange);}
+
+    /* SLOT GRID */
+    .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.7rem;}
+    .slot{background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;
+      padding:.8rem .95rem;display:flex;align-items:center;gap:.7rem;
+      transition:border-color .18s;position:relative;}
+    .slot::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+    .slot.av::before{background:var(--green);}
+    .slot.bk::before{background:var(--orange);}
+    .slot.bl::before{background:var(--red);}
+    .slot:hover{border-color:var(--border-hi);}
+    .slot-hr{font-family:'JetBrains Mono',monospace;font-size:.98rem;font-weight:600;color:var(--text-bright);min-width:52px;flex-shrink:0;}
+    .slot-info{flex:1;min-width:0;}
+    .slot-pet{font-size:.82rem;font-weight:600;color:var(--text-bright);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .slot-own{font-size:.7rem;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:.1rem;}
+    .stag{font-size:.62rem;font-weight:700;padding:.12rem .4rem;border-radius:5px;letter-spacing:.04em;text-transform:uppercase;flex-shrink:0;}
+    .tav{background:var(--green-dim);color:var(--green);border:1px solid rgba(62,207,164,.2);}
+    .tbk{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(255,140,66,.2);}
+    .tbl{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,90,126,.2);}
+    .sbtns{display:flex;gap:.3rem;flex-shrink:0;}
+    .sb{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:var(--bg-input);
+      color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;
+      font-size:.8rem;transition:all .15s;text-decoration:none;}
+    .sb:hover.sbk{border-color:var(--orange);color:var(--orange);background:var(--orange-dim);}
+    .sb:hover.sbl{border-color:var(--red);color:var(--red);background:var(--red-dim);}
+    .sb:hover.sfr{border-color:var(--green);color:var(--green);background:var(--green-dim);}
+    .sb:hover.sed{border-color:var(--purple);color:var(--purple);background:var(--purple-glow);}
+    .sb:hover.swa{border-color:var(--green);color:var(--green);background:var(--green-dim);}
+
+    /* CITAS */
+    .cita{background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;
+      padding:1rem 1.1rem;display:flex;align-items:center;gap:1rem;
+      transition:border-color .18s;border-left:3px solid var(--orange);}
+    .cita:hover{border-color:rgba(255,140,66,.45);}
+    .cita-av{width:42px;height:42px;border-radius:50%;background:var(--orange-dim);
+      border:2px solid rgba(255,140,66,.3);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+    .cita-info{flex:1;min-width:0;}
+    .cita-pet{font-size:.9rem;font-weight:700;color:var(--text-bright);}
+    .cita-raza{font-size:.72rem;color:var(--purple);font-weight:500;margin-left:.4rem;}
+    .cita-when{font-size:.74rem;color:var(--text-dim);margin-top:.2rem;}
+    .cita-who{font-size:.74rem;color:var(--text-dim);margin-top:.1rem;}
+    .cita-btns{display:flex;gap:.35rem;flex-shrink:0;}
+
+    /* MODAL */
+    .overlay{position:fixed;inset:0;background:rgba(59,31,14,.45);backdrop-filter:blur(6px);
+      z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;
+      opacity:0;pointer-events:none;transition:opacity .22s;}
+    .overlay.open{opacity:1;pointer-events:all;}
+    .modal{background:var(--bg-card);border:1px solid var(--border-hi);border-radius:20px;
+      width:100%;max-width:440px;padding:1.75rem;
+      box-shadow:0 20px 60px rgba(123,79,158,.18), 0 4px 20px rgba(59,31,14,.1);
+      transform:translateY(22px);transition:transform .22s;}
+    .overlay.open .modal{transform:translateY(0);}
+    .m-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.4rem;}
+    .m-title{font-size:1.1rem;font-weight:800;color:var(--text-bright);}
+    .m-sub{font-size:.76rem;color:var(--text-dim);margin-top:.2rem;}
+    .m-x{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--bg-panel);
+      color:var(--text-dim);cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;
+      transition:all .18s;flex-shrink:0;}
+    .m-x:hover{border-color:var(--red);color:var(--red);}
+    .fg{margin-bottom:1rem;}
+    .fl{display:block;font-size:.7rem;font-weight:700;color:var(--text-dim);
+      letter-spacing:.08em;text-transform:uppercase;margin-bottom:.35rem;}
+    .fi{width:100%;background:var(--bg-input);border:1px solid var(--border);border-radius:9px;
+      padding:.65rem .9rem;color:var(--text-bright);font-family:'Syne',sans-serif;font-size:.88rem;
+      outline:none;transition:border-color .18s;min-height:44px;}
+    .fi:focus{border-color:var(--purple);box-shadow:0 0 0 3px var(--purple-glow);}
+    .fi::placeholder{color:var(--text-dim);}
+    .fi[readonly]{opacity:.6;cursor:default;}
+    .f2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+    .m-ft{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.4rem;flex-wrap:wrap;}
+
+    /* TOAST */
+    .toasts{position:fixed;top:72px;right:1rem;z-index:1000;display:flex;flex-direction:column;gap:.45rem;pointer-events:none;}
+    .toast{background:var(--bg-card);border:1px solid var(--border-hi);border-radius:11px;
+      padding:.65rem .95rem;font-size:.82rem;color:var(--text);
+      box-shadow:0 4px 20px rgba(123,79,158,.15);display:flex;align-items:center;gap:.5rem;
+      animation:tIn .25s ease both;max-width:280px;pointer-events:all;}
+    .toast.ok{border-color:rgba(46,158,117,.4);}
+    .toast.err{border-color:rgba(212,105,138,.4);}
+    .toast.inf{border-color:rgba(123,79,158,.35);}
+    @keyframes tIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}}
+
+    /* LOADING */
+    .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;
+      padding:3rem;gap:.75rem;color:var(--text-dim);font-size:.86rem;}
+    .spin{width:28px;height:28px;border:2px solid var(--purple-dim);border-top-color:var(--purple);
+      border-radius:50%;animation:sp .7s linear infinite;}
+    @keyframes sp{to{transform:rotate(360deg);}}
+
+    /* RESPONSIVE */
+    @media(max-width:768px){
+      .shell{grid-template-columns:1fr;grid-template-rows:60px 1fr;}
+      .sidebar{display:none;position:fixed;top:60px;left:0;right:0;bottom:0;z-index:200;padding:1rem;}
+      .sidebar.open{display:flex;}
+      .main{padding:1rem;}
+      .kpis{grid-template-columns:repeat(2,1fr);}
+      .sgrid{grid-template-columns:1fr;}
+      .f2{grid-template-columns:1fr;}
+      .ph-act{width:100%;}
+      .ph-act .btn{flex:1;justify-content:center;}
+    }
+    @media(max-width:480px){
+      .kpis{grid-template-columns:1fr 1fr;}
+      .kpi-val{font-size:1.5rem;}
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="tb-brand">
+      <button class="menu-btn" onclick="toggleMenu()">☰</button>
+      <div class="tb-paw">🐾</div>
+      <div><div class="tb-name">Pet<span>House</span>CR</div></div>
+      <div class="tb-pill">ADMIN</div>
+    </div>
+    <div class="tb-right">
+      <div class="sync-dot loading" id="sDot"></div>
+      <span class="sync-txt" id="sTxt">Cargando...</span>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="s-label">Agenda</div>
+    <div class="s-item active" id="nav-hoy" onclick="goView('hoy')">
+      <span class="s-icon">📅</span> Agenda del día
+      <span class="s-badge p" id="bHoy">0</span>
+    </div>
+    <div class="s-item" id="nav-semana" onclick="goView('semana')">
+      <span class="s-icon">🗓</span> Vista semanal
+    </div>
+    <div class="s-item" id="nav-citas" onclick="goView('citas')">
+      <span class="s-icon">🐾</span> Todas las citas
+      <span class="s-badge" id="bCitas">0</span>
+    </div>
+    <div class="s-stats">
+      <div class="ss-h">Hoy</div>
+      <div class="ss-r"><span class="ss-l">Libres</span><span class="ss-v cg" id="stLib">—</span></div>
+      <div class="ss-r"><span class="ss-l">Citas</span><span class="ss-v co" id="stCit">—</span></div>
+      <div class="ss-r"><span class="ss-l">Bloqueadas</span><span class="ss-v cr" id="stBlo">—</span></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi kp"><span class="kpi-ico">📅</span><div class="kpi-val" id="kT">—</div><div class="kpi-lbl">Slots totales</div></div>
+      <div class="kpi kg"><span class="kpi-ico">✅</span><div class="kpi-val" id="kL">—</div><div class="kpi-lbl">Disponibles</div></div>
+      <div class="kpi ko"><span class="kpi-ico">🐕</span><div class="kpi-val" id="kC">—</div><div class="kpi-lbl">Citas agendadas</div></div>
+      <div class="kpi kr"><span class="kpi-ico">🚫</span><div class="kpi-val" id="kB">—</div><div class="kpi-lbl">Bloqueadas</div></div>
+    </div>
+
+    <!-- VIEW HOY -->
+    <div id="view-hoy">
+      <div class="panel">
+        <div class="p-hd">
+          <div class="p-title">📅 <span id="lblFecha">—</span></div>
+          <div style="display:flex;gap:.45rem;flex-wrap:wrap;">
+            <button class="btn bg bsm" onclick="abrirModal('nueva')">＋ Agendar cita</button>
+            <button class="btn br bsm" onclick="bloquearDia()">🚫 Bloquear día</button>
+            <button class="btn bgh bsm" onclick="liberarDia()">✅ Liberar bloqueadas</button>
+          </div>
+        </div>
+        <div class="p-body">
+          <div class="day-row" id="dayRow"></div>
+          <div id="slotsCont"><div class="empty"><div class="spin"></div>Cargando agenda...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW SEMANA -->
+    <div id="view-semana" style="display:none;">
+      <div class="panel">
+        <div class="p-hd"><div class="p-title">🗓 Próximos 7 días</div></div>
+        <div class="p-body" id="semCont"><div class="empty"><div class="spin"></div></div></div>
+      </div>
+    </div>
+
+    <!-- VIEW CITAS -->
+    <div id="view-citas" style="display:none;">
+      <div class="panel">
+        <div class="p-hd"><div class="p-title">🐾 Todas las citas agendadas</div></div>
+        <div class="p-body" id="citasCont"><div class="empty"><div class="spin"></div></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="cmoFuera(event)">
+  <div class="modal">
+    <div class="m-hd">
+      <div><div class="m-title" id="mTit">Nueva cita</div><div class="m-sub" id="mSub">—</div></div>
+      <button class="m-x" onclick="cmo()">✕</button>
+    </div>
+    <input type="hidden" id="mF"/><input type="hidden" id="mH"/><input type="hidden" id="mMode"/>
+    <div class="f2">
+      <div class="fg"><label class="fl">Fecha</label><input class="fi" id="mFv" readonly/></div>
+      <div class="fg"><label class="fl">Hora</label><input class="fi" id="mHv" readonly/></div>
+    </div>
+    <div class="f2">
+      <div class="fg"><label class="fl">🐾 Nombre del perrito</label><input class="fi" id="mP" placeholder="ej: Luna" maxlength="40"/></div>
+      <div class="fg"><label class="fl">Raza</label><input class="fi" id="mR" placeholder="ej: Pomeranian" maxlength="40"/></div>
+    </div>
+    <div class="f2">
+      <div class="fg"><label class="fl">Nombre del dueño/a</label><input class="fi" id="mD" placeholder="ej: Ana García" maxlength="60"/></div>
+      <div class="fg"><label class="fl">Teléfono</label><input class="fi" id="mTel" placeholder="ej: 88887777" maxlength="20"/></div>
+    </div>
+    <div class="m-ft">
+      <button class="btn bgh" onclick="cmo()">Cancelar</button>
+      <button class="btn br bsm" id="mDel" onclick="eliminarCita()" style="display:none;">🗑 Eliminar</button>
+      <button class="btn bp" onclick="guardarCita()">💾 Guardar cita</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────
+const _K=42, _EU="G09jeQd4Q0VcR3VbfVpkeVhpGnlbXB98RFlCHWRaQlMa";
+const WA="50660188490", OH=8, CH=17, DA=14;
+
+// ── UTILS ──────────────────────────────────────────────────
+const xor=(s,k)=>s.split('').map(c=>String.fromCharCode(c.charCodeAt(0)^k)).join('');
+const dec=e=>xor(atob(e),_K);
+const DIAS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const MESES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const MESL=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const DIAF=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+
+function dKey(d){return d.toISOString().split("T")[0];}
+function hoy(){const d=new Date();d.setHours(0,0,0,0);return dKey(d);}
+function fmtH(h){const n=parseInt(h),p=n<12?"AM":"PM";return `${String(n<=12?n:n-12).padStart(2,"0")}:00 ${p}`;}
+function fmtFL(s){const[y,m,d]=s.split("-").map(Number),o=new Date(y,m-1,d);return `${DIAF[o.getDay()]} ${d} de ${MESL[m-1]}`;}
+function getSlots(){const a=[];for(let h=OH;h<CH;h++)a.push(String(h).padStart(2,"0")+":00");return a;}
+function getFechas(){const a=[],b=new Date();b.setHours(0,0,0,0);for(let i=0;i<DA;i++){const d=new Date(b);d.setDate(b.getDate()+i);a.push(d);}return a;}
+
+// ── STATE ──────────────────────────────────────────────────
+let db=null, selF=hoy(), dates=[];
+
+// ── CARGA ──────────────────────────────────────────────────
+async function cargar(){
+  setSS("loading","Cargando...");
+  const id = dec(_EU);
+  const candidates = [
+    `https://drive.usercontent.google.com/download?id=${id}&export=download&authuser=0`,
+    `./availability.json`,
+    `https://drive.google.com/uc?export=download&id=${id}`,
+  ];
+  for(const url of candidates){
+    try{
+      const r=await fetch(url,{cache:"no-store"});
+      if(!r.ok) continue;
+      const text=await r.text();
+      if(text.trim().startsWith("<")) continue;
+      const data=JSON.parse(text);
+      if(!data.slots) continue;
+      db=data;
+      setSS("ok","Actualizado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
+      dates=getFechas(); refrescar(); return;
+    }catch(e){ console.warn("❌",url,e.message); }
+  }
+  setSS("error","Sin conexión");
+  toast("No se pudo cargar el archivo. Mostrando datos de ejemplo.","err");
+  db=demo(); dates=getFechas(); refrescar();
+}
+
+function setSS(s,t){
+  document.getElementById("sDot").className="sync-dot"+(s==="loading"?" loading":s==="error"?" error":"");
+  document.getElementById("sTxt").textContent=t;
+}
+
+function demo(){
+  const sl=[],names=[
+    {perrito:"Kira",raza:"Pomeranian",dueno:"Sofía Ramírez",telefono:"88881111"},
+    {perrito:"Luna",raza:"Shih Tzu",dueno:"Carlos Mora",telefono:"88882222"},
+    {perrito:"Max",raza:"Bichón Frisé",dueno:"Laura Jiménez",telefono:"88883333"},
+  ];let ni=0;
+  getFechas().forEach(d=>{
+    const f=dKey(d);
+    getSlots().forEach(h=>{
+      const r=Math.random();
+      sl.push(r<.2?{fecha:f,hora:h,disponible:false,cita:names[ni++%3]}:r<.25?{fecha:f,hora:h,disponible:false,cita:null}:{fecha:f,hora:h,disponible:true,cita:null});
+    });
+  });
+  return{meta:{negocio:"PetHouseCR",whatsapp:WA,ultima_actualizacion:new Date().toISOString()},slots:sl};
+}
+
+function refrescar(){updKPIs();updSide();renderDays();renderSlots();renderCitas();renderSem();}
+
+// ── KPIs ───────────────────────────────────────────────────
+function updKPIs(){
+  if(!db)return;
+  const t=db.slots.length,l=db.slots.filter(s=>s.disponible).length,
+        c=db.slots.filter(s=>!s.disponible&&s.cita).length,
+        b=db.slots.filter(s=>!s.disponible&&!s.cita).length;
+  ["kT","kL","kC","kB"].forEach((id,i)=>document.getElementById(id).textContent=[t,l,c,b][i]);
+  document.getElementById("bCitas").textContent=c;
+}
+function updSide(){
+  if(!db)return;
+  const h=hoy(),t=db.slots.filter(s=>s.fecha===h);
+  document.getElementById("stLib").textContent=t.filter(s=>s.disponible).length;
+  document.getElementById("stCit").textContent=t.filter(s=>!s.disponible&&s.cita).length;
+  document.getElementById("stBlo").textContent=t.filter(s=>!s.disponible&&!s.cita).length;
+  document.getElementById("bHoy").textContent=t.filter(s=>s.cita).length;
+}
+
+// ── DAY PILLS ──────────────────────────────────────────────
+function renderDays(){
+  const c=document.getElementById("dayRow");c.innerHTML="";
+  dates.forEach(d=>{
+    const k=dKey(d),has=db?.slots.some(s=>s.fecha===k&&s.cita);
+    const el=document.createElement("div");
+    el.className="dp"+(k===selF?" active":"");
+    el.innerHTML=`<span class="dp-n">${DIAS[d.getDay()]}</span><span class="dp-d">${d.getDate()}</span><span class="dp-m">${MESES[d.getMonth()]}</span>${has?'<span class="dp-dot"></span>':""}`;
+    el.onclick=()=>{selF=k;renderDays();renderSlots();updLbl();};
+    c.appendChild(el);
+  });
+  updLbl();
+}
+function updLbl(){document.getElementById("lblFecha").textContent=fmtFL(selF);}
+
+// ── SLOTS ──────────────────────────────────────────────────
+function renderSlots(){
+  const c=document.getElementById("slotsCont");
+  if(!db){c.innerHTML='<div class="empty"><div class="spin"></div>Cargando...</div>';return;}
+  const day=db.slots.filter(s=>s.fecha===selF);
+  if(!day.length){c.innerHTML='<div class="empty">Sin horarios para este día.</div>';return;}
+  let h='<div class="sgrid">';
+  day.forEach(s=>{
+    const st=s.disponible?"av":s.cita?"bk":"bl";
+    const tc={av:"tav",bk:"tbk",bl:"tbl"}[st];
+    const tl={av:"Libre",bk:"Agendado",bl:"Bloqueado"}[st];
+    const wa=s.cita?encodeURIComponent(`Hola ${s.cita.dueno}! Confirmamos la cita de *${s.cita.perrito}* el *${fmtFL(s.fecha)}* a las *${fmtH(parseInt(s.hora))}*. ¡Los esperamos! 🐾 PetHouseCR`):"";
+    h+=`<div class="slot ${st}"><div class="slot-hr">${fmtH(parseInt(s.hora))}</div>
+      <div class="slot-info"><div class="slot-pet">${st==="av"?"Disponible":s.cita?.perrito||"Bloqueado"}</div>
+      ${s.cita?`<div class="slot-own">${s.cita.dueno} · ${s.cita.telefono}</div>`:""}</div>
+      <span class="stag ${tc}">${tl}</span>
+      <div class="sbtns">`;
+    if(st==="av"){
+      h+=`<button class="sb sbk" title="Agendar" onclick="abrirModal('agendar','${s.fecha}','${s.hora}')">✏️</button>
+          <button class="sb sbl" title="Bloquear" onclick="bloquear('${s.fecha}','${s.hora}',true)">🚫</button>`;
+    }else if(st==="bk"){
+      h+=`<button class="sb sed" title="Editar cita" onclick="abrirModal('editar','${s.fecha}','${s.hora}')">✏️</button>
+          <a class="sb swa" href="https://wa.me/${WA}?text=${wa}" target="_blank" rel="noopener" title="WhatsApp al dueño">💬</a>
+          <button class="sb sfr" title="Cancelar cita" onclick="bloquear('${s.fecha}','${s.hora}',false)">✅</button>`;
+    }else{
+      h+=`<button class="sb sfr" title="Liberar" onclick="bloquear('${s.fecha}','${s.hora}',false)">✅</button>`;
+    }
+    h+=`</div></div>`;
+  });
+  c.innerHTML=h+"</div>";
+}
+
+// ── SEMANA ─────────────────────────────────────────────────
+function renderSem(){
+  const c=document.getElementById("semCont");
+  if(!db){c.innerHTML='<div class="empty"><div class="spin"></div></div>';return;}
+  let h='<div class="sgrid">';
+  dates.slice(0,7).forEach(d=>{
+    const k=dKey(d),ds=db.slots.filter(s=>s.fecha===k);
+    const l=ds.filter(s=>s.disponible).length,ct=ds.filter(s=>s.cita).length,bl=ds.filter(s=>!s.disponible&&!s.cita).length;
+    h+=`<div class="slot bk" style="cursor:pointer;" onclick="selF='${k}';goView('hoy');renderDays();renderSlots();">
+      <div class="slot-hr" style="min-width:auto;font-size:.82rem;">${DIAS[d.getDay()]} ${d.getDate()}</div>
+      <div class="slot-info"><div class="slot-pet">${ct} cita${ct!==1?"s":""}</div>
+      <div class="slot-own">${l} libre${l!==1?"s":""}${bl>0?` · ${bl} bloq.`:""}</div></div>
+      <span class="stag ${ct>0?"tbk":"tav"}">${ct>0?ct+" 🐾":"✅"}</span>
+    </div>`;
+  });
+  c.innerHTML=h+"</div>";
+}
+
+// ── CITAS ──────────────────────────────────────────────────
+function renderCitas(){
+  const c=document.getElementById("citasCont");
+  if(!db){c.innerHTML='<div class="empty"><div class="spin"></div></div>';return;}
+  const lista=db.slots.filter(s=>s.cita).sort((a,b)=>(a.fecha+a.hora).localeCompare(b.fecha+b.hora));
+  if(!lista.length){c.innerHTML='<div class="empty">No hay citas agendadas aún. 🐾</div>';return;}
+  let h='<div style="display:flex;flex-direction:column;gap:.6rem;">';
+  lista.forEach(s=>{
+    const wa=encodeURIComponent(`Hola ${s.cita.dueno}! Confirmamos la cita de *${s.cita.perrito}* el *${fmtFL(s.fecha)}* a las *${fmtH(parseInt(s.hora))}*. ¡Los esperamos! 🐾 PetHouseCR`);
+    h+=`<div class="cita"><div class="cita-av">🐾</div>
+      <div class="cita-info"><div class="cita-pet">${s.cita.perrito}<span class="cita-raza">${s.cita.raza}</span></div>
+      <div class="cita-when">📅 ${fmtFL(s.fecha)} · ${fmtH(parseInt(s.hora))}</div>
+      <div class="cita-who">👤 ${s.cita.dueno} · 📱 ${s.cita.telefono}</div></div>
+      <div class="cita-btns">
+        <button class="sb sed" title="Editar" onclick="abrirModal('editar','${s.fecha}','${s.hora}');goView('hoy');selF='${s.fecha}';renderDays();renderSlots();">✏️</button>
+        <a class="sb swa" href="https://wa.me/${WA}?text=${wa}" target="_blank" rel="noopener" title="WhatsApp">💬</a>
+        <button class="sb sfr" title="Eliminar cita" onclick="bloquear('${s.fecha}','${s.hora}',false)">🗑</button>
+      </div></div>`;
+  });
+  c.innerHTML=h+"</div>";
+}
+
+// ── ACCIONES ───────────────────────────────────────────────
+function getSlot(f,h){return db?.slots.find(s=>s.fecha===f&&s.hora===h);}
+function bloquear(f,h,bl){
+  const s=getSlot(f,h);if(!s)return;
+  s.disponible=!bl;if(!bl)s.cita=null;
+  db.meta.ultima_actualizacion=new Date().toISOString();
+  refrescar();
+  toast(bl?"🚫 Hora bloqueada":"✅ Hora liberada",bl?"inf":"ok");
+}
+function bloquearDia(){
+  if(!db)return;
+  db.slots.filter(s=>s.fecha===selF&&s.disponible).forEach(s=>{s.disponible=false;});
+  db.meta.ultima_actualizacion=new Date().toISOString();
+  refrescar();toast("🚫 Día completo bloqueado","inf");
+}
+function liberarDia(){
+  if(!db)return;
+  db.slots.filter(s=>s.fecha===selF&&!s.disponible&&!s.cita).forEach(s=>{s.disponible=true;});
+  db.meta.ultima_actualizacion=new Date().toISOString();
+  refrescar();toast("✅ Bloqueadas liberadas","ok");
+}
+
+// ── MODAL ──────────────────────────────────────────────────
+function abrirModal(mode,fecha,hora){
+  if(mode==="nueva"){
+    const av=db?.slots.find(s=>s.fecha===selF&&s.disponible);
+    if(!av){toast("No hay horas disponibles hoy","err");return;}
+    fecha=av.fecha;hora=av.hora;
+  }
+  const s=getSlot(fecha,hora);
+  document.getElementById("mMode").value=mode;
+  document.getElementById("mF").value=fecha;
+  document.getElementById("mH").value=hora;
+  document.getElementById("mFv").value=fmtFL(fecha);
+  document.getElementById("mHv").value=fmtH(parseInt(hora));
+  document.getElementById("mP").value=s?.cita?.perrito||"";
+  document.getElementById("mR").value=s?.cita?.raza||"";
+  document.getElementById("mD").value=s?.cita?.dueno||"";
+  document.getElementById("mTel").value=s?.cita?.telefono||"";
+  const ed=mode==="editar";
+  document.getElementById("mTit").textContent=ed?"Editar cita":"Nueva cita";
+  document.getElementById("mSub").textContent=`${fmtFL(fecha)} · ${fmtH(parseInt(hora))}`;
+  document.getElementById("mDel").style.display=ed?"inline-flex":"none";
+  document.getElementById("overlay").classList.add("open");
+  setTimeout(()=>document.getElementById("mP").focus(),180);
+}
+function cmo(){document.getElementById("overlay").classList.remove("open");}
+function cmoFuera(e){if(e.target===document.getElementById("overlay"))cmo();}
+
+function guardarCita(){
+  const f=document.getElementById("mF").value,h=document.getElementById("mH").value;
+  const p=document.getElementById("mP").value.trim(),r=document.getElementById("mR").value.trim();
+  const d=document.getElementById("mD").value.trim(),t=document.getElementById("mTel").value.trim();
+  if(!p||!r||!d){toast("Completa nombre del perrito, raza y dueño/a","err");return;}
+  const s=getSlot(f,h);if(!s){toast("Horario no encontrado","err");return;}
+  s.disponible=false;s.cita={perrito:p,raza:r,dueno:d,telefono:t};
+  db.meta.ultima_actualizacion=new Date().toISOString();
+  cmo();refrescar();toast(`🐾 Cita de ${p} guardada`,"ok");
+}
+function eliminarCita(){
+  const f=document.getElementById("mF").value,h=document.getElementById("mH").value;
+  const s=getSlot(f,h);if(!s)return;
+  const n=s.cita?.perrito||"la cita";
+  s.disponible=true;s.cita=null;
+  db.meta.ultima_actualizacion=new Date().toISOString();
+  cmo();refrescar();toast(`🗑 Cita de ${n} eliminada`,"inf");
+}
+
+// ── VISTAS ─────────────────────────────────────────────────
+function goView(v){
+  ["hoy","semana","citas"].forEach(x=>{
+    document.getElementById("view-"+x).style.display=x===v?"block":"none";
+    document.getElementById("nav-"+x)?.classList.toggle("active",x===v);
+  });
+  if(window.innerWidth<=768)document.getElementById("sidebar").classList.remove("open");
+}
+function toggleMenu(){document.getElementById("sidebar").classList.toggle("open");}
+
+// ── TOAST ──────────────────────────────────────────────────
+function toast(msg,type="inf"){
+  const icons={ok:"✅",err:"❌",inf:"ℹ️"};
+  const el=document.createElement("div");
+  el.className=`toast ${type}`;
+  el.innerHTML=`<span>${icons[type]}</span>${msg}`;
+  document.getElementById("toasts").appendChild(el);
+  setTimeout(()=>el.remove(),3400);
+}
+
+document.addEventListener("keydown",e=>{if(e.key==="Escape")cmo();});
+document.addEventListener("DOMContentLoaded",cargar);
+</script>
+</body>
+</html>
