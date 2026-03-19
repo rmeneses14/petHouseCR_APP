@@ -932,7 +932,7 @@ const WEEK_FULL   = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes",
 let availability = {};
 
 function dateKey(d) {
-  return d.toISOString().split("T")[0];
+  return d.toLocaleDateString("sv-SE", { timeZone: "America/Costa_Rica" });
 }
 function formatDateLong(d) {
   return `${WEEK_FULL[d.getDay()]} ${d.getDate()} de ${MONTHS_FULL[d.getMonth()]}`;
@@ -1066,8 +1066,17 @@ function renderSlots(dKey, dateObj) {
     return;
   }
   const dayData  = availability[dKey] || {};
-  const isToday  = dKey === dateKey(new Date());
-  const nowHour  = new Date().getHours();
+  // Hora actual en Costa Rica (UTC-6) para filtrar slots pasados
+  const nowCR     = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Costa_Rica" }));
+  const todayCR   = nowCR.toISOString().split("T")[0].slice(0,10);
+  // Recalcular dateKey con fecha CR
+  const todayKeyReal = (() => {
+    const d = new Date(); d.setHours(0,0,0,0);
+    return new Date(d.toLocaleString("en-US",{timeZone:"America/Costa_Rica"}))
+      .toLocaleDateString("sv-SE"); // formato YYYY-MM-DD
+  })();
+  const isToday   = dKey === todayKeyReal;
+  const nowHourCR = nowCR.getHours();
 
   const slots = generateSlots();
   let html = `<div class="slots-grid">`;
@@ -1076,8 +1085,8 @@ function renderSlots(dKey, dateObj) {
   slots.forEach(slot => {
     const slotHour = parseInt(slot);
 
-    // Si es hoy y la hora ya pasó → no mostrar
-    if (isToday && slotHour <= nowHour) return;
+    // Si es hoy y la hora ya pasó en CR → no mostrar
+    if (isToday && slotHour <= nowHourCR) return;
 
     anyVisible = true;
     const avail = dayData[slot] !== false;

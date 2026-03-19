@@ -655,7 +655,10 @@ const MESL   = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto
 const DIAF   = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
 
 function dKey(d){ return d.toISOString().split("T")[0]; }
-function hoy(){ const d=new Date(); d.setHours(0,0,0,0); return dKey(d); }
+function hoy(){
+  // Fecha de hoy en Costa Rica (UTC-6)
+  return new Date().toLocaleDateString("sv-SE",{timeZone:"America/Costa_Rica"});
+}
 function fmtH(h){ const n=parseInt(h),p=n<12?"AM":"PM"; return `${String(n<=12?n:n-12).padStart(2,"0")}:00 ${p}`; }
 function fmtFL(s){ const[y,m,d]=s.split("-").map(Number),o=new Date(y,m-1,d); return `${DIAF[o.getDay()]} ${d} de ${MESL[m-1]}`; }
 function getSlots(){ const a=[]; for(let h=OH;h<CH;h++) a.push(String(h).padStart(2,"0")+":00"); return a; }
@@ -923,8 +926,10 @@ function getSlot(f,h){return db?.slots.find(s=>s.fecha===f&&s.hora===h);}
 function renderSlots(){
   const c=document.getElementById("slotsCont");
   if(!db){c.innerHTML='<div class="empty"><div class="spin"></div>Cargando...</div>';return;}
+  // Hora actual en Costa Rica (UTC-6)
+  const nowCR   = new Date(new Date().toLocaleString("en-US",{timeZone:"America/Costa_Rica"}));
   const isToday = selF === hoy();
-  const nowHour = new Date().getHours();
+  const nowHour = nowCR.getHours();
   // En admin mostramos pasados pero deshabilitados (útil ver historial del día)
   const day=db.slots.filter(s=>s.fecha===selF);
   if(!day.length){c.innerHTML='<div class="empty">Sin horarios para este día.</div>';return;}
