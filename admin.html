@@ -833,6 +833,9 @@ async function cargarDeAPI() {
   ]);
   const citaMap={};
   citas.forEach(c=>{citaMap[c.slot_id]=c;});
+  // Ordenar slots por fecha y hora antes de mapear
+  slots.sort((a,b)=>(a.fecha+a.hora).localeCompare(b.fecha+b.hora));
+
   const slotsMapped = slots.map(s=>({
     fecha:s.fecha, hora:s.hora, disponible:s.disponible, slot_id:s.id,
     cita: citaMap[s.id]?{cita_id:citaMap[s.id].id,slot_id:s.id,perrito:citaMap[s.id].perrito,raza:citaMap[s.id].raza,dueno:citaMap[s.id].dueno,telefono:citaMap[s.id].telefono,notas:citaMap[s.id].notas||""}:null,
@@ -931,7 +934,7 @@ function renderSlots(){
   const isToday = selF === hoy();
   const nowHour = nowCR.getHours();
   // En admin mostramos pasados pero deshabilitados (útil ver historial del día)
-  const day=db.slots.filter(s=>s.fecha===selF);
+  const day=db.slots.filter(s=>s.fecha===selF).sort((a,b)=>a.hora.localeCompare(b.hora));
   if(!day.length){c.innerHTML='<div class="empty">Sin horarios para este día.</div>';return;}
   let h='<div class="sgrid">';
   day.forEach(s=>{
