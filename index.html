@@ -912,10 +912,8 @@
 // ════════════════════════════════════════════════════════════
 //  CONFIG — solo editar estas variables
 // ════════════════════════════════════════════════════════════
-const WA_NUMBER  = "50660188490"; // WhatsApp PetHouseCR
-// URL raw de GitHub — mismo repo, sin CORS
-// GitHub raw — mismo repo, sin CORS
-const GITHUB_RAW = "https://raw.githubusercontent.com/rmeneses14/petHouseCR_APP/main/availability.json";
+const WA_NUMBER  = "50660188490";
+const API        = "https://endpoints-tb.onrender.com";
 
 const OPEN_HOUR  = 8;   // 8:00 AM
 const CLOSE_HOUR = 17;  // última cita 4:00 PM (no incluye 17)
@@ -976,34 +974,56 @@ function formatHour(h) {
 }
 
 async function loadAvailability() {
-  // Fuentes en orden: GitHub raw (sin CORS) → local fallback
-  const sources = [
-    GITHUB_RAW + "?t=" + Date.now(),
-    "./availability.json",
-  ];
-  for (const url of sources) {
-    try {
-      const resp = await fetch(url, { cache: "no-store" });
-      if (!resp.ok) continue;
-      const text = await resp.text();
-      if (text.trim().startsWith("<")) continue;
-      const data = JSON.parse(text);
-      if (!data.slots) continue;
-      // Convertir array → mapa { fecha: { hora: disponible } }
-      availability = {};
-      data.slots.forEach(s => {
-        if (!availability[s.fecha]) availability[s.fecha] = {};
-        availability[s.fecha][s.hora] = s.disponible;
-      });
-      console.log("✅ JSON cargado:", url);
-      return;
-    } catch(e) {
-      console.warn("❌ Fuente falló:", url, e.message);
-    }
+  try {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const maxD  = new Date(today); maxD.setDate(today.getDate() + DAYS_AHEAD);
+    const desde = dateKey(today);
+    const hasta = dateKey(maxD);
+
+    // Obtener slots del rango de fechas
+    const slotsResp = await fetch(`${API}/table/phcr_slots/query`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filters: [
+          { field: "fecha", operator: "gte", value: desde },
+          { field: "fecha", operator: "lte", value: hasta },
+        ],
+        order_by: "fecha",
+        ascending: true,
+        limit: 1000,
+      }),
+    });
+    if (!slotsResp.ok) throw new Error("HTTP " + slotsResp.status);
+    const { data: slots } = await slotsResp.json();
+
+    // Obtener citas activas del mismo rango
+    const citasResp = await fetch(`${API}/table/phcr_citas/query`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filters: [{ field: "estado", operator: "eq", value: "confirmada" }],
+        limit: 1000,
+      }),
+    });
+    const { data: citas } = citasResp.ok ? await citasResp.json() : { data: [] };
+
+    // Índice de citas por slot_id para lookup rápido
+    const citaMap = {};
+    (citas || []).forEach(c => { citaMap[c.slot_id] = c; });
+
+    // Construir mapa de disponibilidad { fecha: { hora: bool } }
+    availability = {};
+    (slots || []).forEach(s => {
+      if (!availability[s.fecha]) availability[s.fecha] = {};
+      availability[s.fecha][s.hora] = s.disponible;
+    });
+
+    console.log("✅ API:", (slots||[]).length, "slots cargados");
+  } catch(e) {
+    console.warn("⚠️ API error, usando demo:", e.message);
+    loadDemo();
   }
-  // Sin conexión → demo aleatorio
-  console.warn("⚠️ Modo demo — sin conexión al JSON");
-  loadDemo();
 }
 
 function loadDemo() {

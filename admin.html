@@ -594,15 +594,9 @@
 //  PIN_HASH : SHA-256 del PIN. Para generar uno nuevo:
 //    1. Abre https://emn178.github.io/online-tools/sha256.html
 //    2. Escribe tu PIN → copia el hash → pégalo aquí
-//  GITHUB_RAW : URL raw del availability.json en tu repo
-const PIN_HASH    = "357c08aaae039838b09aeb5b1ea24dfdc71e482d1c3f6746c6b12e8fa8c5fd50";
-const GITHUB_RAW  = "https://raw.githubusercontent.com/rmeneses14/petHouseCR_APP/main/availability.json";
-// GitHub API — token cifrado XOR+Base64 (clave 73)
-const _GK = 73;
-const _GT = "LiE5FhMFAwAoOC0aPwwoBRkCCid8J3wmPg8vKDAHHBk7KH0AfAQueQ==";
-const GITHUB_REPO = "rmeneses14/petHouseCR_APP";
-const GITHUB_FILE = "availability.json";
-const GITHUB_BRANCH = "main";
+//  API       : endpoint del backend universal
+const PIN_HASH = "357c08aaae039838b09aeb5b1ea24dfdc71e482d1c3f6746c6b12e8fa8c5fd50";
+const API      = "https://endpoints-tb.onrender.com";
 
 // ════════════════════════════════════════════════════════════
 //  LOGIN — SHA-256 puro, sin localStorage para el PIN
@@ -785,97 +779,112 @@ function getFechas(){const a=[],b=new Date();b.setHours(0,0,0,0);for(let i=0;i<D
 // ── STATE ──────────────────────────────────────────────────
 let db=null, selF=hoy(), dates=[];
 
-// ── TOKEN DECODER ──────────────────────────────────────────
-function getToken() {
-  return atob(_GT).split('').map(c => String.fromCharCode(c.charCodeAt(0) ^ _GK)).join('');
+// ── API HELPERS (endpoints-tb.onrender.com) ────────────────
+const H = { "Content-Type": "application/json" };
+
+async function apiGet(table, filters = [], opts = {}) {
+  const body = { filters, order_by: opts.order_by || "created_at",
+                 ascending: opts.ascending ?? true, limit: opts.limit || 1000 };
+  const r = await fetch(`${API}/table/${table}/query`,
+    { method:"POST", headers:H, body:JSON.stringify(body) });
+  if (!r.ok) throw new Error(`GET ${table} HTTP ${r.status}`);
+  const json = await r.json();
+  return json.data || [];
+}
+async function apiPost(table, data) {
+  const r = await fetch(`${API}/table/${table}`,
+    { method:"POST", headers:H, body:JSON.stringify(data) });
+  if (!r.ok) throw new Error(`POST ${table} HTTP ${r.status}`);
+  return (await r.json()).data;
+}
+async function apiPut(table, id, data) {
+  const r = await fetch(`${API}/table/${table}/${id}`,
+    { method:"PUT", headers:H, body:JSON.stringify(data) });
+  if (!r.ok) throw new Error(`PUT ${table}/${id} HTTP ${r.status}`);
+  return r.ok;
+}
+async function apiDelete(table, id) {
+  const r = await fetch(`${API}/table/${table}/${id}`, { method:"DELETE", headers:H });
+  return r.ok;
 }
 
-// ── GUARDAR EN GITHUB ───────────────────────────────────────
-let _fileSha = null; // SHA del archivo actual — requerido por GitHub API para updates
+// ── LEER AGENDA ─────────────────────────────────────────────
+function fechaMax() {
+  const d = new Date(); d.setDate(d.getDate() + DA); return dKey(d);
+}
 
-async function guardarEnGitHub(mostrarToast = true) {
-  if (!db) return false;
-  db.meta.ultima_actualizacion = new Date().toISOString();
+async function cargarDeAPI() {
+  const [slots, citas] = await Promise.all([
+    apiGet("phcr_slots", [
+      { field:"fecha", operator:"gte", value: hoy()     },
+      { field:"fecha", operator:"lte", value: fechaMax() },
+    ], { order_by:"fecha", ascending:true }),
+    apiGet("phcr_citas", [
+      { field:"estado", operator:"eq", value:"confirmada" },
+    ]),
+  ]);
 
-  const token   = getToken();
-  const apiUrl  = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
-  const content = btoa(unescape(encodeURIComponent(JSON.stringify(db, null, 2))));
+  // Índice de citas por slot_id
+  const citaMap = {};
+  citas.forEach(c => { citaMap[c.slot_id] = c; });
 
-  // Si no tenemos el SHA, obtenerlo primero
-  if (!_fileSha) {
-    try {
-      const r = await fetch(apiUrl, {
-        headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
-      });
-      if (r.ok) {
-        const meta = await r.json();
-        _fileSha = meta.sha;
-      }
-    } catch(e) { console.warn("No se pudo obtener SHA:", e.message); }
-  }
+  // Construir estructura db
+  const slotsMapped = slots.map(s => ({
+    fecha:      s.fecha,
+    hora:       s.hora,
+    disponible: s.disponible,
+    slot_id:    s.id,
+    cita:       citaMap[s.id] ? {
+      cita_id:  citaMap[s.id].id,
+      slot_id:  s.id,
+      perrito:  citaMap[s.id].perrito,
+      raza:     citaMap[s.id].raza,
+      dueno:    citaMap[s.id].dueno,
+      telefono: citaMap[s.id].telefono,
+      notas:    citaMap[s.id].notas || "",
+    } : null,
+  }));
 
-  const body = {
-    message: `Admin update ${new Date().toLocaleString("es-CR")}`,
-    content,
-    branch: GITHUB_BRANCH,
-    ..._fileSha && { sha: _fileSha }
+  return {
+    meta:  { negocio:"PetHouseCR", ultima_actualizacion: new Date().toISOString() },
+    slots: slotsMapped,
   };
+}
 
-  try {
-    const resp = await fetch(apiUrl, {
-      method:  "PUT",
-      headers: {
-        "Authorization": `token ${token}`,
-        "Content-Type":  "application/json",
-        "Accept":        "application/vnd.github.v3+json",
-      },
-      body: JSON.stringify(body),
-    });
+// ── BLOQUEAR / LIBERAR SLOT ─────────────────────────────────
+async function sbToggleSlot(slot_id, disponible) {
+  return apiPut("phcr_slots", slot_id, { disponible });
+}
 
-    if (!resp.ok) {
-      const err = await resp.json();
-      console.error("GitHub API error:", err);
-      if (mostrarToast) toast("❌ Error al guardar: " + (err.message || resp.status), "err");
-      return false;
-    }
-
-    const result = await resp.json();
-    _fileSha = result.content?.sha || null; // actualizar SHA para próximo commit
-    if (mostrarToast) toast("✅ Guardado en GitHub", "ok");
-    setSS("ok", "Guardado · " + new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
-    return true;
-
-  } catch(e) {
-    console.error("guardarEnGitHub error:", e);
-    if (mostrarToast) toast("❌ Sin conexión al guardar", "err");
-    return false;
+// ── GUARDAR / EDITAR CITA ───────────────────────────────────
+async function sbUpsertCita(slot_id, cita_id, datos) {
+  await apiPut("phcr_slots", slot_id, { disponible: false });
+  if (cita_id) {
+    return apiPut("phcr_citas", cita_id, { ...datos, estado:"confirmada" });
+  } else {
+    return apiPost("phcr_citas", { slot_id, ...datos, estado:"confirmada" });
   }
+}
+
+// ── ELIMINAR CITA ───────────────────────────────────────────
+async function sbEliminarCita(cita_id, slot_id) {
+  await apiDelete("phcr_citas", cita_id);
+  await apiPut("phcr_slots", slot_id, { disponible: true });
 }
 
 // ── CARGA ──────────────────────────────────────────────────
 async function cargar(){
   setSS("loading","Cargando...");
-  // Fuentes en orden: GitHub raw (mismo repo, sin CORS) → local fallback
-  const sources = [
-    GITHUB_RAW + "?t=" + Date.now(),  // cache-bust
-    "./availability.json",             // fallback local
-  ];
-  for(const url of sources){
-    try{
-      const r = await fetch(url, { cache:"no-store" });
-      if(!r.ok) continue;
-      const text = await r.text();
-      if(text.trim().startsWith("<")) continue; // HTML = error page
-      const data = JSON.parse(text);
-      if(!data.slots) continue;
-      db = data;
-      setSS("ok","Actualizado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
-      dates=getFechas(); refrescar(); return;
-    } catch(e){ console.warn("❌ fetch falló:", url, e.message); }
+  try {
+    db = await cargarDeAPI();
+    setSS("ok","Actualizado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
+    dates=getFechas(); refrescar();
+  } catch(e) {
+    console.error("API error:", e);
+    setSS("error","Sin conexión");
+    toast("No se pudo cargar la agenda: " + e.message,"err");
+    db=demo(); dates=getFechas(); refrescar();
   }
-  setSS("error","Sin conexión al JSON");
-  toast("No se pudo cargar la agenda. Verifica tu conexión.","err");
-  db=demo(); dates=getFechas(); refrescar();
 }
 
 function setSS(s,t){
@@ -1008,27 +1017,33 @@ function renderCitas(){
 
 // ── ACCIONES ───────────────────────────────────────────────
 function getSlot(f,h){return db?.slots.find(s=>s.fecha===f&&s.hora===h);}
-function bloquear(f,h,bl){
+async function bloquear(f,h,bl){
   const s=getSlot(f,h);if(!s)return;
-  s.disponible=!bl;if(!bl)s.cita=null;
-  db.meta.ultima_actualizacion=new Date().toISOString();
+  const ok = await sbToggleSlot(s.slot_id, !bl);
+  if(!ok){ toast("❌ Error al guardar","err"); return; }
+  s.disponible=!bl; if(!bl)s.cita=null;
   refrescar();
-  toast(bl?"🚫 Guardando...":"✅ Guardando...","inf");
-  guardarEnGitHub();
+  toast(bl?"🚫 Hora bloqueada":"✅ Hora liberada",bl?"inf":"ok");
+  setSS("ok","Guardado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
 }
-function bloquearDia(){
+async function bloquearDia(){
   if(!db)return;
-  db.slots.filter(s=>s.fecha===selF&&s.disponible).forEach(s=>{s.disponible=false;});
-  db.meta.ultima_actualizacion=new Date().toISOString();
+  const targets = db.slots.filter(s=>s.fecha===selF&&s.disponible);
+  // Actualizar en Supabase en paralelo
+  await Promise.all(targets.map(s=>sbToggleSlot(s.slot_id,false)));
+  targets.forEach(s=>{s.disponible=false;});
   refrescar();
-  guardarEnGitHub().then(ok => toast(ok?"🚫 Día bloqueado y guardado":"🚫 Bloqueado (sin conexión)",ok?"inf":"err"));
+  toast("🚫 Día completo bloqueado","inf");
+  setSS("ok","Guardado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
 }
-function liberarDia(){
+async function liberarDia(){
   if(!db)return;
-  db.slots.filter(s=>s.fecha===selF&&!s.disponible&&!s.cita).forEach(s=>{s.disponible=true;});
-  db.meta.ultima_actualizacion=new Date().toISOString();
+  const targets = db.slots.filter(s=>s.fecha===selF&&!s.disponible&&!s.cita);
+  await Promise.all(targets.map(s=>sbToggleSlot(s.slot_id,true)));
+  targets.forEach(s=>{s.disponible=true;});
   refrescar();
-  guardarEnGitHub().then(ok => toast(ok?"✅ Liberadas y guardado":"✅ Liberadas (sin conexión)",ok?"ok":"err"));
+  toast("✅ Bloqueadas liberadas","ok");
+  setSS("ok","Guardado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
 }
 
 // ── MODAL ──────────────────────────────────────────────────
@@ -1064,19 +1079,25 @@ function guardarCita(){
   const d=document.getElementById("mD").value.trim(),t=document.getElementById("mTel").value.trim();
   if(!p||!r||!d){toast("Completa nombre del perrito, raza y dueño/a","err");return;}
   const s=getSlot(f,h);if(!s){toast("Horario no encontrado","err");return;}
-  s.disponible=false;s.cita={perrito:p,raza:r,dueno:d,telefono:t};
+  const cita_id = s.cita?.cita_id || null;
+  const ok = await sbUpsertCita(s.slot_id, cita_id, {perrito:p,raza:r,dueno:d,telefono:t});
+  if(!ok){ toast("❌ Error al guardar la cita","err"); return; }
+  s.disponible=false; s.cita={perrito:p,raza:r,dueno:d,telefono:t};
   db.meta.ultima_actualizacion=new Date().toISOString();
   cmo();refrescar();
-  guardarEnGitHub().then(ok=>toast(ok?`🐾 Cita de ${p} guardada`:`🐾 Guardada (sin conexión)`,ok?"ok":"err"));
+  toast(`🐾 Cita de ${p} guardada`,"ok");
+  setSS("ok","Guardado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
 }
 function eliminarCita(){
   const f=document.getElementById("mF").value,h=document.getElementById("mH").value;
   const s=getSlot(f,h);if(!s)return;
   const n=s.cita?.perrito||"la cita";
-  s.disponible=true;s.cita=null;
+  await sbEliminarCita(s.cita?.cita_id, s.slot_id);
+  s.disponible=true; s.cita=null;
   db.meta.ultima_actualizacion=new Date().toISOString();
   cmo();refrescar();
-  guardarEnGitHub().then(ok=>toast(ok?`🗑 Cita de ${n} eliminada`:`🗑 Eliminada (sin conexión)`,ok?"inf":"err"));
+  toast(`🗑 Cita de ${n} eliminada`,"inf");
+  setSS("ok","Guardado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
 }
 
 // ── VISTAS ─────────────────────────────────────────────────
