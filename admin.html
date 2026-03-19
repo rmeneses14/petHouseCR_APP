@@ -923,20 +923,29 @@ function getSlot(f,h){return db?.slots.find(s=>s.fecha===f&&s.hora===h);}
 function renderSlots(){
   const c=document.getElementById("slotsCont");
   if(!db){c.innerHTML='<div class="empty"><div class="spin"></div>Cargando...</div>';return;}
+  const isToday = selF === hoy();
+  const nowHour = new Date().getHours();
+  // En admin mostramos pasados pero deshabilitados (útil ver historial del día)
   const day=db.slots.filter(s=>s.fecha===selF);
   if(!day.length){c.innerHTML='<div class="empty">Sin horarios para este día.</div>';return;}
   let h='<div class="sgrid">';
   day.forEach(s=>{
+    const isPast = isToday && parseInt(s.hora) < nowHour;
     const st=s.disponible?"av":s.cita?"bk":"bl";
     const tc={av:"tav",bk:"tbk",bl:"tbl"}[st];
     const tl={av:"Libre",bk:"Agendado",bl:"Bloqueado"}[st];
     const wa=s.cita?encodeURIComponent(`Hola ${s.cita.dueno}! Confirmamos la cita de *${s.cita.perrito}* el *${fmtFL(s.fecha)}* a las *${fmtH(parseInt(s.hora))}*. ¡Los esperamos! 🐾 PetHouseCR`):"";
-    h+=`<div class="slot ${st}"><div class="slot-hr">${fmtH(parseInt(s.hora))}</div>
+    const pastStyle = isPast ? "opacity:.45;filter:grayscale(.6);" : "";
+    const pastLabel = isPast ? `<span class="stag" style="background:#f0f0f0;color:#aaa;border:1px solid #ddd;font-size:.58rem;">Pasado</span>` : `<span class="stag ${tc}">${tl}</span>`;
+    h+=`<div class="slot ${st}" style="${pastStyle}"><div class="slot-hr">${fmtH(parseInt(s.hora))}</div>
       <div class="slot-info"><div class="slot-pet">${st==="av"?"Disponible":s.cita?.perrito||"Bloqueado"}</div>
       ${s.cita?`<div class="slot-own">${s.cita.dueno} · ${s.cita.telefono}</div>`:""}</div>
-      <span class="stag ${tc}">${tl}</span>
+      ${pastLabel}
       <div class="sbtns">`;
-    if(st==="av"){
+    if(isPast){
+      // Solo mostrar WA si tiene cita, sin permitir editar
+      if(st==="bk" && wa) h+=`<a class="sb swa" href="https://wa.me/${WA}?text=${wa}" target="_blank" rel="noopener" title="WhatsApp">💬</a>`;
+    } else if(st==="av"){
       h+=`<button class="sb sbk" title="Agendar" onclick="abrirModal('agendar','${s.fecha}','${s.hora}')">✏️</button>
           <button class="sb sbl" title="Bloquear" onclick="bloquear('${s.fecha}','${s.hora}',true)">🚫</button>`;
     }else if(st==="bk"){

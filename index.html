@@ -1065,10 +1065,21 @@ function renderSlots(dKey, dateObj) {
     container.innerHTML = `<div class="cal-error">⚠️ Sin conexión. <a href="https://wa.me/${WA_NUMBER}" style="color:var(--purple-deep);font-weight:600;">💬 WhatsApp</a></div>`;
     return;
   }
-  const dayData = availability[dKey] || {};
+  const dayData  = availability[dKey] || {};
+  const isToday  = dKey === dateKey(new Date());
+  const nowHour  = new Date().getHours();
+
   const slots = generateSlots();
   let html = `<div class="slots-grid">`;
+  let anyVisible = false;
+
   slots.forEach(slot => {
+    const slotHour = parseInt(slot);
+
+    // Si es hoy y la hora ya pasó → no mostrar
+    if (isToday && slotHour <= nowHour) return;
+
+    anyVisible = true;
     const avail = dayData[slot] !== false;
     const { display, period } = formatHour(slot);
     const waMsg = encodeURIComponent(
@@ -1091,6 +1102,12 @@ function renderSlots(dKey, dateObj) {
       </div>`;
     }
   });
+
+  if (!anyVisible) {
+    html += `<div class="no-slots-msg">No quedan citas disponibles para hoy. 🐾<br>
+      <a href="#reservas" style="color:var(--purple-deep);font-weight:600;font-size:.85rem;" onclick="document.querySelector('.day-pill:not(.active)').click()">Ver mañana →</a></div>`;
+  }
+
   html += `</div>`;
   container.innerHTML = html;
 }
