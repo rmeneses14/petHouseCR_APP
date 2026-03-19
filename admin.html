@@ -628,138 +628,113 @@
 
 <script>
 // ════════════════════════════════════════════════════════════
-//  CONFIG — editar estas 2 líneas para personalizar
+//  CONFIG
 // ════════════════════════════════════════════════════════════
-//  PIN_HASH : SHA-256 del PIN. Para generar uno nuevo:
-//    1. Abre https://emn178.github.io/online-tools/sha256.html
-//    2. Escribe tu PIN → copia el hash → pégalo aquí
-//  API       : endpoint del backend universal
-let PIN_HASH = null; // Se carga desde la base de datos al iniciar
 const API      = "https://endpoints-tb.onrender.com";
-const WA="50660188490", OH=8, CH=17, DA=14;
+const WA       = "50660188490";
+const OH       = 8;   // hora apertura
+const CH       = 17;  // hora cierre
+const DA       = 14;  // días a mostrar
 
-// ════════════════════════════════════════════════════════════
-//  LOGIN — SHA-256 puro, sin localStorage para el PIN
-//  Solo usamos localStorage para: sesión (8h) y lockout
-// ════════════════════════════════════════════════════════════
+// ── Sesión y lockout (localStorage — datos temporales) ──────
 const SESSION_KEY  = "phcr_s";
-const SESSION_TTL  = 8 * 60 * 60 * 1000; // 8 horas
+const SESSION_TTL  = 8 * 60 * 60 * 1000;
 const LOCKOUT_KEY  = "phcr_l";
 const MAX_ATTEMPTS = 5;
 
-let pinBuffer = "";
+// ── PIN — se carga desde la BD al iniciar ───────────────────
+let PIN_HASH = null;
 
+// ════════════════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════════════════
+const H = { "Content-Type": "application/json" };
+const DIAS   = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
+const MESES  = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const MESL   = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const DIAF   = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+
+function dKey(d){ return d.toISOString().split("T")[0]; }
+function hoy(){ const d=new Date(); d.setHours(0,0,0,0); return dKey(d); }
+function fmtH(h){ const n=parseInt(h),p=n<12?"AM":"PM"; return `${String(n<=12?n:n-12).padStart(2,"0")}:00 ${p}`; }
+function fmtFL(s){ const[y,m,d]=s.split("-").map(Number),o=new Date(y,m-1,d); return `${DIAF[o.getDay()]} ${d} de ${MESL[m-1]}`; }
+function getSlots(){ const a=[]; for(let h=OH;h<CH;h++) a.push(String(h).padStart(2,"0")+":00"); return a; }
+function getFechas(){ const a=[],b=new Date(); b.setHours(0,0,0,0); for(let i=0;i<DA;i++){const d=new Date(b);d.setDate(b.getDate()+i);a.push(d);} return a; }
+function fechaMax(){ const d=new Date(); d.setDate(d.getDate()+DA); return dKey(d); }
+
+// ── STATE ────────────────────────────────────────────────────
+let db=null, selF=hoy(), dates=[];
+
+// ════════════════════════════════════════════════════════════
+//  SHA-256
+// ════════════════════════════════════════════════════════════
 async function sha256(str) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 
-// ── CARGAR PIN DESDE BASE DE DATOS ──────────────────────────
+// ════════════════════════════════════════════════════════════
+//  LOCKOUT + SESSION
+// ════════════════════════════════════════════════════════════
+function getLockout(){ try{ return JSON.parse(localStorage.getItem(LOCKOUT_KEY))||{count:0,until:0}; }catch{return{count:0,until:0};} }
+function saveLockout(d){ localStorage.setItem(LOCKOUT_KEY,JSON.stringify(d)); }
+function isLockedOut(){ return getLockout().until > Date.now(); }
+function lockoutRemaining(){ const s=Math.ceil((getLockout().until-Date.now())/1000); return s>0?s:0; }
+function hasValidSession(){ try{const s=JSON.parse(localStorage.getItem(SESSION_KEY));return s&&s.exp>Date.now();}catch{return false;} }
+function createSession(){ localStorage.setItem(SESSION_KEY,JSON.stringify({exp:Date.now()+SESSION_TTL})); }
+function clearSession(){ localStorage.removeItem(SESSION_KEY); location.reload(); }
+
+// ════════════════════════════════════════════════════════════
+//  PIN — carga y cambio desde BD
+// ════════════════════════════════════════════════════════════
 async function cargarPIN() {
   try {
     const r = await fetch(`${API}/table/phcr_config/query`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        filters: [{ field: "clave", operator: "eq", value: "pin_hash" }],
-        limit: 1,
-      }),
+      method:"POST", headers:H,
+      body:JSON.stringify({ filters:[{field:"clave",operator:"eq",value:"pin_hash"}], limit:1 }),
     });
-    if (!r.ok) throw new Error("HTTP " + r.status);
+    if (!r.ok) throw new Error("HTTP "+r.status);
     const { data } = await r.json();
-    if (data && data.length > 0) {
-      PIN_HASH = data[0].valor;
-      console.log("✅ PIN cargado desde BD");
-      return true;
-    }
-    throw new Error("PIN no encontrado en BD");
+    if (data && data.length > 0) { PIN_HASH = data[0].valor; return; }
+    throw new Error("Sin datos");
   } catch(e) {
-    console.error("❌ Error cargando PIN:", e.message);
-    // Fallback: PIN 1234 hardcodeado solo si la BD falla
-    PIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
-    return false;
+    console.warn("PIN desde BD falló, usando fallback:", e.message);
+    PIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4"; // 1234
   }
 }
 
-// ── CAMBIAR PIN (desde panel admin) ─────────────────────────
 async function cambiarPIN(pinNuevo) {
-  if (!pinNuevo || pinNuevo.length < 4) {
-    toast("El PIN debe tener al menos 4 dígitos", "err"); return false;
-  }
+  if (!pinNuevo || pinNuevo.length < 4) { toast("PIN debe tener al menos 4 dígitos","err"); return false; }
   const nuevoHash = await sha256(pinNuevo);
-  // Buscar el registro actual para obtener su ID
   try {
-    const r = await fetch(`${API}/table/phcr_config/query`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        filters: [{ field: "clave", operator: "eq", value: "pin_hash" }],
-        limit: 1,
-      }),
-    });
-    const { data } = await r.json();
-    if (!data || data.length === 0) throw new Error("Config no encontrada");
-    const id = data[0].id;
-    // Actualizar
-    const upd = await fetch(`${API}/table/phcr_config/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ valor: nuevoHash }),
-    });
-    if (!upd.ok) throw new Error("HTTP " + upd.status);
+    const r1 = await fetch(`${API}/table/phcr_config/query`,{method:"POST",headers:H,body:JSON.stringify({filters:[{field:"clave",operator:"eq",value:"pin_hash"}],limit:1})});
+    const { data } = await r1.json();
+    if (!data||!data.length) throw new Error("Config no encontrada");
+    const r2 = await fetch(`${API}/table/phcr_config/${data[0].id}`,{method:"PUT",headers:H,body:JSON.stringify({valor:nuevoHash})});
+    if (!r2.ok) throw new Error("HTTP "+r2.status);
     PIN_HASH = nuevoHash;
-    toast("🔐 PIN actualizado correctamente", "ok");
+    toast("🔐 PIN actualizado","ok");
     return true;
-  } catch(e) {
-    toast("❌ Error al cambiar el PIN: " + e.message, "err");
-    return false;
-  }
+  } catch(e) { toast("❌ Error: "+e.message,"err"); return false; }
 }
 
-// ── Lockout ─────────────────────────────────────────────────
-function getLockout() {
-  try { return JSON.parse(localStorage.getItem(LOCKOUT_KEY)) || { count:0, until:0 }; }
-  catch { return { count:0, until:0 }; }
-}
-function saveLockout(data) { localStorage.setItem(LOCKOUT_KEY, JSON.stringify(data)); }
-function isLockedOut() {
-  const l = getLockout();
-  return l.until > Date.now();
-}
-function lockoutRemaining() {
-  const secs = Math.ceil((getLockout().until - Date.now()) / 1000);
-  return secs > 0 ? secs : 0;
-}
+// ════════════════════════════════════════════════════════════
+//  PIN UI
+// ════════════════════════════════════════════════════════════
+let pinBuffer = "";
 
-// ── Session ─────────────────────────────────────────────────
-function hasValidSession() {
-  try {
-    const s = JSON.parse(localStorage.getItem(SESSION_KEY));
-    return s && s.exp > Date.now();
-  } catch { return false; }
-}
-function createSession() {
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ exp: Date.now() + SESSION_TTL }));
-}
-function clearSession() {
-  localStorage.removeItem(SESSION_KEY);
-  location.reload();
-}
-
-// ── PIN UI ───────────────────────────────────────────────────
 function updateDots() {
-  for (let i = 0; i < 4; i++) {
-    const d = document.getElementById("dot" + i);
+  for (let i=0;i<4;i++) {
+    const d = document.getElementById("dot"+i);
     d.classList.toggle("filled", i < pinBuffer.length);
     d.classList.remove("error");
   }
 }
 
-// Flash visual en el botón presionado
 function flashKey(el) {
   if (!el) return;
   el.classList.add("pressed");
-  setTimeout(() => el.classList.remove("pressed"), 150);
+  setTimeout(()=>el.classList.remove("pressed"), 150);
 }
 
 function pinKey(digit, el) {
@@ -774,258 +749,134 @@ function pinKey(digit, el) {
 
 function pinDel(el) {
   flashKey(el);
-  pinBuffer = pinBuffer.slice(0, -1);
+  pinBuffer = pinBuffer.slice(0,-1);
   updateDots();
   document.getElementById("loginError").textContent = "";
 }
 
 async function checkPin() {
   const hash = await sha256(pinBuffer);
-
   if (hash === PIN_HASH) {
-    // ✅ Correcto
-    saveLockout({ count:0, until:0 });
+    saveLockout({count:0,until:0});
     createSession();
     unlockApp();
   } else {
-    // ❌ Incorrecto
     const l = getLockout();
-    const newCount = l.count + 1;
+    const newCount = l.count+1;
     let newUntil = 0;
-
     if (newCount >= MAX_ATTEMPTS) {
-      // Bloqueo progresivo: 1 min × número de lockouts
-      const lockMins = Math.min(newCount - MAX_ATTEMPTS + 1, 10);
-      newUntil = Date.now() + lockMins * 60 * 1000;
+      const lockMins = Math.min(newCount-MAX_ATTEMPTS+1,10);
+      newUntil = Date.now()+lockMins*60*1000;
     }
-    saveLockout({ count: newCount, until: newUntil });
-
-    // Animar error
-    for (let i = 0; i < 4; i++) {
-      document.getElementById("dot" + i).classList.add("error");
-    }
-    setTimeout(() => {
-      pinBuffer = "";
-      updateDots();
-      if (isLockedOut()) {
-        showLockoutMsg();
-      } else {
-        const rem = MAX_ATTEMPTS - newCount;
-        document.getElementById("loginError").textContent = "PIN incorrecto";
-        document.getElementById("loginAttempts").textContent =
-          rem > 0 ? `${rem} intento${rem !== 1 ? "s" : ""} restante${rem !== 1 ? "s" : ""}` : "";
-      }
-    }, 400);
+    saveLockout({count:newCount,until:newUntil});
+    for (let i=0;i<4;i++) document.getElementById("dot"+i).classList.add("error");
+    setTimeout(()=>{
+      pinBuffer=""; updateDots();
+      if (isLockedOut()) { showLockoutMsg(); return; }
+      const rem = MAX_ATTEMPTS-newCount;
+      document.getElementById("loginError").textContent = "PIN incorrecto";
+      document.getElementById("loginAttempts").textContent = rem>0?`${rem} intento${rem!==1?"s":""} restante${rem!==1?"s":""}` :"";
+    },400);
   }
 }
 
 function showLockoutMsg() {
-  pinBuffer = "";
-  updateDots();
-  const secs = lockoutRemaining();
-  const mins = Math.ceil(secs / 60);
+  pinBuffer=""; updateDots();
+  const mins = Math.ceil(lockoutRemaining()/60);
   document.getElementById("loginError").textContent = `🔒 Bloqueado — espera ${mins} min`;
   document.getElementById("loginAttempts").textContent = "";
-  // Countdown
-  const interval = setInterval(() => {
-    if (!isLockedOut()) {
-      clearInterval(interval);
-      document.getElementById("loginError").textContent = "";
-      document.getElementById("loginAttempts").textContent = "";
-    } else {
-      const s = lockoutRemaining();
-      document.getElementById("loginError").textContent =
-        `🔒 Bloqueado — espera ${Math.ceil(s/60)} min`;
-    }
-  }, 5000);
+  const iv = setInterval(()=>{
+    if (!isLockedOut()) { clearInterval(iv); document.getElementById("loginError").textContent=""; document.getElementById("loginAttempts").textContent=""; }
+    else document.getElementById("loginError").textContent = `🔒 Bloqueado — espera ${Math.ceil(lockoutRemaining()/60)} min`;
+  },5000);
 }
 
 function unlockApp() {
-  const screen = document.getElementById("loginScreen");
-  screen.classList.add("hiding");
-  setTimeout(() => {
-    screen.classList.add("hidden");
-    document.getElementById("appShell").style.display = "grid";
-    cargar();
-  }, 350);
+  const s = document.getElementById("loginScreen");
+  s.classList.add("hiding");
+  setTimeout(()=>{ s.classList.add("hidden"); document.getElementById("appShell").style.display="grid"; cargar(); },350);
 }
 
-
-
-
-
-
-// ── UTILS ──────────────────────────────────────────────────
-const xor=(s,k)=>s.split('').map(c=>String.fromCharCode(c.charCodeAt(0)^k)).join('');
-const dec=e=>xor(atob(e),_K);
-const DIAS=["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
-const MESES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-const MESL=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-const DIAF=["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
-
-function dKey(d){return d.toISOString().split("T")[0];}
-function hoy(){const d=new Date();d.setHours(0,0,0,0);return dKey(d);}
-function fmtH(h){const n=parseInt(h),p=n<12?"AM":"PM";return `${String(n<=12?n:n-12).padStart(2,"0")}:00 ${p}`;}
-function fmtFL(s){const[y,m,d]=s.split("-").map(Number),o=new Date(y,m-1,d);return `${DIAF[o.getDay()]} ${d} de ${MESL[m-1]}`;}
-function getSlots(){const a=[];for(let h=OH;h<CH;h++)a.push(String(h).padStart(2,"0")+":00");return a;}
-function getFechas(){const a=[],b=new Date();b.setHours(0,0,0,0);for(let i=0;i<DA;i++){const d=new Date(b);d.setDate(b.getDate()+i);a.push(d);}return a;}
-
-// ── STATE ──────────────────────────────────────────────────
-let db=null, selF=hoy(), dates=[];
-
-// ── API HELPERS (endpoints-tb.onrender.com) ────────────────
-const H = { "Content-Type": "application/json" };
-
-async function apiGet(table, filters = [], opts = {}) {
-  const body = { filters, order_by: opts.order_by || "created_at",
-                 ascending: opts.ascending ?? true, limit: opts.limit || 1000 };
-  const r = await fetch(`${API}/table/${table}/query`,
-    { method:"POST", headers:H, body:JSON.stringify(body) });
+// ════════════════════════════════════════════════════════════
+//  API HELPERS
+// ════════════════════════════════════════════════════════════
+async function apiGet(table, filters=[], opts={}) {
+  const r = await fetch(`${API}/table/${table}/query`,{method:"POST",headers:H,
+    body:JSON.stringify({filters,order_by:opts.order_by||"created_at",ascending:opts.ascending??true,limit:opts.limit||1000})});
   if (!r.ok) throw new Error(`GET ${table} HTTP ${r.status}`);
-  const json = await r.json();
-  return json.data || [];
+  return (await r.json()).data||[];
 }
-async function apiPost(table, data) {
-  const r = await fetch(`${API}/table/${table}`,
-    { method:"POST", headers:H, body:JSON.stringify(data) });
-  if (!r.ok) throw new Error(`POST ${table} HTTP ${r.status}`);
-  return (await r.json()).data;
-}
-async function apiPut(table, id, data) {
-  const r = await fetch(`${API}/table/${table}/${id}`,
-    { method:"PUT", headers:H, body:JSON.stringify(data) });
-  if (!r.ok) throw new Error(`PUT ${table}/${id} HTTP ${r.status}`);
-  return r.ok;
-}
-async function apiDelete(table, id) {
-  const r = await fetch(`${API}/table/${table}/${id}`, { method:"DELETE", headers:H });
-  return r.ok;
-}
+async function apiPost(table,data){ const r=await fetch(`${API}/table/${table}`,{method:"POST",headers:H,body:JSON.stringify(data)}); if(!r.ok)throw new Error(`POST ${table} HTTP ${r.status}`); return(await r.json()).data; }
+async function apiPut(table,id,data){ const r=await fetch(`${API}/table/${table}/${id}`,{method:"PUT",headers:H,body:JSON.stringify(data)}); return r.ok; }
+async function apiDelete(table,id){ const r=await fetch(`${API}/table/${table}/${id}`,{method:"DELETE",headers:H}); return r.ok; }
 
-// ── LEER AGENDA ─────────────────────────────────────────────
-function fechaMax() {
-  const d = new Date(); d.setDate(d.getDate() + DA); return dKey(d);
-}
-
-async function cargarDeAPI() {
-  const [slots, citas] = await Promise.all([
-    apiGet("phcr_slots", [
-      { field:"fecha", operator:"gte", value: hoy()     },
-      { field:"fecha", operator:"lte", value: fechaMax() },
-    ], { order_by:"fecha", ascending:true }),
-    apiGet("phcr_citas", [
-      { field:"estado", operator:"eq", value:"confirmada" },
-    ]),
-  ]);
-
-  // Índice de citas por slot_id
-  const citaMap = {};
-  citas.forEach(c => { citaMap[c.slot_id] = c; });
-
-  // Construir estructura db
-  const slotsMapped = slots.map(s => ({
-    fecha:      s.fecha,
-    hora:       s.hora,
-    disponible: s.disponible,
-    slot_id:    s.id,
-    cita:       citaMap[s.id] ? {
-      cita_id:  citaMap[s.id].id,
-      slot_id:  s.id,
-      perrito:  citaMap[s.id].perrito,
-      raza:     citaMap[s.id].raza,
-      dueno:    citaMap[s.id].dueno,
-      telefono: citaMap[s.id].telefono,
-      notas:    citaMap[s.id].notas || "",
-    } : null,
-  }));
-
-  return {
-    meta:  { negocio:"PetHouseCR", ultima_actualizacion: new Date().toISOString() },
-    slots: slotsMapped,
-  };
-}
-
-// ── BLOQUEAR / LIBERAR SLOT ─────────────────────────────────
-async function sbToggleSlot(slot_id, disponible) {
-  return apiPut("phcr_slots", slot_id, { disponible });
-}
-
-// ── GUARDAR / EDITAR CITA ───────────────────────────────────
-async function sbUpsertCita(slot_id, cita_id, datos) {
-  await apiPut("phcr_slots", slot_id, { disponible: false });
-  if (cita_id) {
-    return apiPut("phcr_citas", cita_id, { ...datos, estado:"confirmada" });
-  } else {
-    return apiPost("phcr_citas", { slot_id, ...datos, estado:"confirmada" });
-  }
-}
-
-// ── ELIMINAR CITA ───────────────────────────────────────────
-async function sbEliminarCita(cita_id, slot_id) {
-  await apiDelete("phcr_citas", cita_id);
-  await apiPut("phcr_slots", slot_id, { disponible: true });
-}
-
-// ── MANTENIMIENTO ──────────────────────────────────────────
-// Corre siempre al cargar: borra pasados, garantiza 15 días adelante
+// ════════════════════════════════════════════════════════════
+//  MANTENIMIENTO
+// ════════════════════════════════════════════════════════════
 async function ejecutarMantenimiento() {
   try {
     const r = await fetch(`${API}/maintenance/phcr`);
-    if (r.ok) {
-      const { result } = await r.json();
-      console.log("🔧 Mantenimiento:", result);
-    }
-  } catch(e) {
-    console.warn("⚠️ Mantenimiento falló (no crítico):", e.message);
-  }
+    if (r.ok) console.log("🔧 Mantenimiento OK:", (await r.json()).result);
+  } catch(e) { console.warn("⚠️ Mantenimiento falló (no crítico):", e.message); }
 }
 
-// ── CARGA ──────────────────────────────────────────────────
-async function cargar(){
+// ════════════════════════════════════════════════════════════
+//  CARGA DE DATOS
+// ════════════════════════════════════════════════════════════
+async function cargarDeAPI() {
+  const [slots, citas] = await Promise.all([
+    apiGet("phcr_slots",[{field:"fecha",operator:"gte",value:hoy()},{field:"fecha",operator:"lte",value:fechaMax()}],{order_by:"fecha",ascending:true}),
+    apiGet("phcr_citas",[{field:"estado",operator:"eq",value:"confirmada"}]),
+  ]);
+  const citaMap={};
+  citas.forEach(c=>{citaMap[c.slot_id]=c;});
+  const slotsMapped = slots.map(s=>({
+    fecha:s.fecha, hora:s.hora, disponible:s.disponible, slot_id:s.id,
+    cita: citaMap[s.id]?{cita_id:citaMap[s.id].id,slot_id:s.id,perrito:citaMap[s.id].perrito,raza:citaMap[s.id].raza,dueno:citaMap[s.id].dueno,telefono:citaMap[s.id].telefono,notas:citaMap[s.id].notas||""}:null,
+  }));
+  return { meta:{negocio:"PetHouseCR",ultima_actualizacion:new Date().toISOString()}, slots:slotsMapped };
+}
+
+async function cargar() {
   setSS("loading","Cargando...");
-  // Mantenimiento diario (no bloquea la carga)
-  ejecutarMantenimiento();
+  ejecutarMantenimiento(); // no bloquea
   try {
     db = await cargarDeAPI();
     setSS("ok","Actualizado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
     dates=getFechas(); refrescar();
   } catch(e) {
-    console.error("API error:", e);
+    console.error("API error:",e);
     setSS("error","Sin conexión");
-    toast("No se pudo cargar la agenda: " + e.message,"err");
+    toast("No se pudo cargar la agenda: "+e.message,"err");
     db=demo(); dates=getFechas(); refrescar();
   }
 }
 
-function setSS(s,t){
-  document.getElementById("sDot").className="sync-dot"+(s==="loading"?" loading":s==="error"?" error":"");
-  document.getElementById("sTxt").textContent=t;
+function demo() {
+  const sl=[],names=[{perrito:"Kira",raza:"Pomeranian",dueno:"Sofía Ramírez",telefono:"88881111"},{perrito:"Luna",raza:"Shih Tzu",dueno:"Carlos Mora",telefono:"88882222"}];let ni=0;
+  getFechas().forEach(d=>{const f=dKey(d);getSlots().forEach(h=>{const r=Math.random();sl.push(r<.2?{fecha:f,hora:h,disponible:false,slot_id:"demo-"+ni,cita:{cita_id:"c-"+ni,slot_id:"demo-"+ni,perrito:names[ni++%2].perrito,raza:names[(ni-1)%2].raza,dueno:names[(ni-1)%2].dueno,telefono:names[(ni-1)%2].telefono,notas:""}}:r<.25?{fecha:f,hora:h,disponible:false,slot_id:"demo-s-"+ni,cita:null}:{fecha:f,hora:h,disponible:true,slot_id:"demo-a-"+ni,cita:null});});});
+  return{meta:{negocio:"PetHouseCR"},slots:sl};
 }
 
-function demo(){
-  const sl=[],names=[
-    {perrito:"Kira",raza:"Pomeranian",dueno:"Sofía Ramírez",telefono:"88881111"},
-    {perrito:"Luna",raza:"Shih Tzu",dueno:"Carlos Mora",telefono:"88882222"},
-    {perrito:"Max",raza:"Bichón Frisé",dueno:"Laura Jiménez",telefono:"88883333"},
-  ];let ni=0;
-  getFechas().forEach(d=>{
-    const f=dKey(d);
-    getSlots().forEach(h=>{
-      const r=Math.random();
-      sl.push(r<.2?{fecha:f,hora:h,disponible:false,cita:names[ni++%3]}:r<.25?{fecha:f,hora:h,disponible:false,cita:null}:{fecha:f,hora:h,disponible:true,cita:null});
-    });
-  });
-  return{meta:{negocio:"PetHouseCR",whatsapp:WA,ultima_actualizacion:new Date().toISOString()},slots:sl};
+// ════════════════════════════════════════════════════════════
+//  SUPABASE ACTIONS
+// ════════════════════════════════════════════════════════════
+async function sbToggleSlot(slot_id,disponible){ return apiPut("phcr_slots",slot_id,{disponible}); }
+async function sbUpsertCita(slot_id,cita_id,datos){
+  await apiPut("phcr_slots",slot_id,{disponible:false});
+  return cita_id ? apiPut("phcr_citas",cita_id,{...datos,estado:"confirmada"}) : apiPost("phcr_citas",{slot_id,...datos,estado:"confirmada"});
+}
+async function sbEliminarCita(cita_id,slot_id){
+  await apiDelete("phcr_citas",cita_id);
+  await apiPut("phcr_slots",slot_id,{disponible:true});
 }
 
-function refrescar(){updKPIs();updSide();renderDays();renderSlots();renderCitas();renderSem();}
-
-// ── KPIs ───────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  KPIs + SIDEBAR
+// ════════════════════════════════════════════════════════════
 function updKPIs(){
   if(!db)return;
-  const t=db.slots.length,l=db.slots.filter(s=>s.disponible).length,
-        c=db.slots.filter(s=>!s.disponible&&s.cita).length,
-        b=db.slots.filter(s=>!s.disponible&&!s.cita).length;
+  const t=db.slots.length,l=db.slots.filter(s=>s.disponible).length,c=db.slots.filter(s=>!s.disponible&&s.cita).length,b=db.slots.filter(s=>!s.disponible&&!s.cita).length;
   ["kT","kL","kC","kB"].forEach((id,i)=>document.getElementById(id).textContent=[t,l,c,b][i]);
   document.getElementById("bCitas").textContent=c;
 }
@@ -1037,10 +888,21 @@ function updSide(){
   document.getElementById("stBlo").textContent=t.filter(s=>!s.disponible&&!s.cita).length;
   document.getElementById("bHoy").textContent=t.filter(s=>s.cita).length;
 }
+function refrescar(){updKPIs();updSide();renderDays();renderSlots();renderCitas();renderSem();}
 
-// ── DAY PILLS ──────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  SYNC INDICATOR
+// ════════════════════════════════════════════════════════════
+function setSS(s,t){
+  document.getElementById("sDot").className="sync-dot"+(s==="loading"?" loading":s==="error"?" error":"");
+  document.getElementById("sTxt").textContent=t;
+}
+
+// ════════════════════════════════════════════════════════════
+//  DAY PILLS
+// ════════════════════════════════════════════════════════════
 function renderDays(){
-  const c=document.getElementById("dayRow");c.innerHTML="";
+  const c=document.getElementById("dayRow"); c.innerHTML="";
   dates.forEach(d=>{
     const k=dKey(d),has=db?.slots.some(s=>s.fecha===k&&s.cita);
     const el=document.createElement("div");
@@ -1053,7 +915,11 @@ function renderDays(){
 }
 function updLbl(){document.getElementById("lblFecha").textContent=fmtFL(selF);}
 
-// ── SLOTS ──────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  SLOTS
+// ════════════════════════════════════════════════════════════
+function getSlot(f,h){return db?.slots.find(s=>s.fecha===f&&s.hora===h);}
+
 function renderSlots(){
   const c=document.getElementById("slotsCont");
   if(!db){c.innerHTML='<div class="empty"><div class="spin"></div>Cargando...</div>';return;}
@@ -1074,9 +940,9 @@ function renderSlots(){
       h+=`<button class="sb sbk" title="Agendar" onclick="abrirModal('agendar','${s.fecha}','${s.hora}')">✏️</button>
           <button class="sb sbl" title="Bloquear" onclick="bloquear('${s.fecha}','${s.hora}',true)">🚫</button>`;
     }else if(st==="bk"){
-      h+=`<button class="sb sed" title="Editar cita" onclick="abrirModal('editar','${s.fecha}','${s.hora}')">✏️</button>
-          <a class="sb swa" href="https://wa.me/${WA}?text=${wa}" target="_blank" rel="noopener" title="WhatsApp al dueño">💬</a>
-          <button class="sb sfr" title="Cancelar cita" onclick="bloquear('${s.fecha}','${s.hora}',false)">✅</button>`;
+      h+=`<button class="sb sed" title="Editar" onclick="abrirModal('editar','${s.fecha}','${s.hora}')">✏️</button>
+          <a class="sb swa" href="https://wa.me/${WA}?text=${wa}" target="_blank" rel="noopener" title="WhatsApp">💬</a>
+          <button class="sb sfr" title="Cancelar" onclick="bloquear('${s.fecha}','${s.hora}',false)">✅</button>`;
     }else{
       h+=`<button class="sb sfr" title="Liberar" onclick="bloquear('${s.fecha}','${s.hora}',false)">✅</button>`;
     }
@@ -1085,7 +951,6 @@ function renderSlots(){
   c.innerHTML=h+"</div>";
 }
 
-// ── SEMANA ─────────────────────────────────────────────────
 function renderSem(){
   const c=document.getElementById("semCont");
   if(!db){c.innerHTML='<div class="empty"><div class="spin"></div></div>';return;}
@@ -1103,7 +968,6 @@ function renderSem(){
   c.innerHTML=h+"</div>";
 }
 
-// ── CITAS ──────────────────────────────────────────────────
 function renderCitas(){
   const c=document.getElementById("citasCont");
   if(!db){c.innerHTML='<div class="empty"><div class="spin"></div></div>';return;}
@@ -1117,20 +981,21 @@ function renderCitas(){
       <div class="cita-when">📅 ${fmtFL(s.fecha)} · ${fmtH(parseInt(s.hora))}</div>
       <div class="cita-who">👤 ${s.cita.dueno} · 📱 ${s.cita.telefono}</div></div>
       <div class="cita-btns">
-        <button class="sb sed" title="Editar" onclick="abrirModal('editar','${s.fecha}','${s.hora}');goView('hoy');selF='${s.fecha}';renderDays();renderSlots();">✏️</button>
-        <a class="sb swa" href="https://wa.me/${WA}?text=${wa}" target="_blank" rel="noopener" title="WhatsApp">💬</a>
-        <button class="sb sfr" title="Eliminar cita" onclick="bloquear('${s.fecha}','${s.hora}',false)">🗑</button>
+        <button class="sb sed" onclick="abrirModal('editar','${s.fecha}','${s.hora}');goView('hoy');selF='${s.fecha}';renderDays();renderSlots();">✏️</button>
+        <a class="sb swa" href="https://wa.me/${WA}?text=${wa}" target="_blank" rel="noopener">💬</a>
+        <button class="sb sfr" onclick="bloquear('${s.fecha}','${s.hora}',false)">🗑</button>
       </div></div>`;
   });
   c.innerHTML=h+"</div>";
 }
 
-// ── ACCIONES ───────────────────────────────────────────────
-function getSlot(f,h){return db?.slots.find(s=>s.fecha===f&&s.hora===h);}
+// ════════════════════════════════════════════════════════════
+//  ACCIONES
+// ════════════════════════════════════════════════════════════
 async function bloquear(f,h,bl){
-  const s=getSlot(f,h);if(!s)return;
-  const ok = await sbToggleSlot(s.slot_id, !bl);
-  if(!ok){ toast("❌ Error al guardar","err"); return; }
+  const s=getSlot(f,h); if(!s)return;
+  const ok=await sbToggleSlot(s.slot_id,!bl);
+  if(!ok){toast("❌ Error al guardar","err");return;}
   s.disponible=!bl; if(!bl)s.cita=null;
   refrescar();
   toast(bl?"🚫 Hora bloqueada":"✅ Hora liberada",bl?"inf":"ok");
@@ -1138,31 +1003,26 @@ async function bloquear(f,h,bl){
 }
 async function bloquearDia(){
   if(!db)return;
-  const targets = db.slots.filter(s=>s.fecha===selF&&s.disponible);
-  // Actualizar en Supabase en paralelo
+  const targets=db.slots.filter(s=>s.fecha===selF&&s.disponible);
   await Promise.all(targets.map(s=>sbToggleSlot(s.slot_id,false)));
   targets.forEach(s=>{s.disponible=false;});
-  refrescar();
-  toast("🚫 Día completo bloqueado","inf");
+  refrescar(); toast("🚫 Día completo bloqueado","inf");
   setSS("ok","Guardado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
 }
 async function liberarDia(){
   if(!db)return;
-  const targets = db.slots.filter(s=>s.fecha===selF&&!s.disponible&&!s.cita);
+  const targets=db.slots.filter(s=>s.fecha===selF&&!s.disponible&&!s.cita);
   await Promise.all(targets.map(s=>sbToggleSlot(s.slot_id,true)));
   targets.forEach(s=>{s.disponible=true;});
-  refrescar();
-  toast("✅ Bloqueadas liberadas","ok");
+  refrescar(); toast("✅ Bloqueadas liberadas","ok");
   setSS("ok","Guardado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
 }
 
-// ── MODAL ──────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  MODAL CITA
+// ════════════════════════════════════════════════════════════
 function abrirModal(mode,fecha,hora){
-  if(mode==="nueva"){
-    const av=db?.slots.find(s=>s.fecha===selF&&s.disponible);
-    if(!av){toast("No hay horas disponibles hoy","err");return;}
-    fecha=av.fecha;hora=av.hora;
-  }
+  if(mode==="nueva"){const av=db?.slots.find(s=>s.fecha===selF&&s.disponible);if(!av){toast("No hay horas disponibles","err");return;}fecha=av.fecha;hora=av.hora;}
   const s=getSlot(fecha,hora);
   document.getElementById("mMode").value=mode;
   document.getElementById("mF").value=fecha;
@@ -1183,34 +1043,34 @@ function abrirModal(mode,fecha,hora){
 function cmo(){document.getElementById("overlay").classList.remove("open");}
 function cmoFuera(e){if(e.target===document.getElementById("overlay"))cmo();}
 
-function guardarCita(){
+async function guardarCita(){
   const f=document.getElementById("mF").value,h=document.getElementById("mH").value;
   const p=document.getElementById("mP").value.trim(),r=document.getElementById("mR").value.trim();
   const d=document.getElementById("mD").value.trim(),t=document.getElementById("mTel").value.trim();
   if(!p||!r||!d){toast("Completa nombre del perrito, raza y dueño/a","err");return;}
-  const s=getSlot(f,h);if(!s){toast("Horario no encontrado","err");return;}
-  const cita_id = s.cita?.cita_id || null;
-  const ok = await sbUpsertCita(s.slot_id, cita_id, {perrito:p,raza:r,dueno:d,telefono:t});
-  if(!ok){ toast("❌ Error al guardar la cita","err"); return; }
+  const s=getSlot(f,h); if(!s){toast("Horario no encontrado","err");return;}
+  const cita_id=s.cita?.cita_id||null;
+  const ok=await sbUpsertCita(s.slot_id,cita_id,{perrito:p,raza:r,dueno:d,telefono:t});
+  if(!ok){toast("❌ Error al guardar la cita","err");return;}
   s.disponible=false; s.cita={perrito:p,raza:r,dueno:d,telefono:t};
-  db.meta.ultima_actualizacion=new Date().toISOString();
   cmo();refrescar();
   toast(`🐾 Cita de ${p} guardada`,"ok");
   setSS("ok","Guardado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
 }
-function eliminarCita(){
+async function eliminarCita(){
   const f=document.getElementById("mF").value,h=document.getElementById("mH").value;
-  const s=getSlot(f,h);if(!s)return;
+  const s=getSlot(f,h); if(!s)return;
   const n=s.cita?.perrito||"la cita";
-  await sbEliminarCita(s.cita?.cita_id, s.slot_id);
+  await sbEliminarCita(s.cita?.cita_id,s.slot_id);
   s.disponible=true; s.cita=null;
-  db.meta.ultima_actualizacion=new Date().toISOString();
   cmo();refrescar();
   toast(`🗑 Cita de ${n} eliminada`,"inf");
   setSS("ok","Guardado · "+new Date().toLocaleTimeString("es-CR",{hour:"2-digit",minute:"2-digit"}));
 }
 
-// ── VISTAS ─────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  VISTAS
+// ════════════════════════════════════════════════════════════
 function goView(v){
   ["hoy","semana","citas"].forEach(x=>{
     document.getElementById("view-"+x).style.display=x===v?"block":"none";
@@ -1220,7 +1080,9 @@ function goView(v){
 }
 function toggleMenu(){document.getElementById("sidebar").classList.toggle("open");}
 
-// ── TOAST ──────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════════════════
 function toast(msg,type="inf"){
   const icons={ok:"✅",err:"❌",inf:"ℹ️"};
   const el=document.createElement("div");
@@ -1230,83 +1092,72 @@ function toast(msg,type="inf"){
   setTimeout(()=>el.remove(),3400);
 }
 
-// ── MODAL CAMBIAR PIN ───────────────────────────────────────
-function abrirModalPin() {
-  document.getElementById("pinActual").value  = "";
-  document.getElementById("pinNuevo").value   = "";
-  document.getElementById("pinConfirm").value = "";
+// ════════════════════════════════════════════════════════════
+//  MODAL CAMBIAR PIN
+// ════════════════════════════════════════════════════════════
+function abrirModalPin(){
+  ["pinActual","pinNuevo","pinConfirm"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("overlayPin").classList.add("open");
-  setTimeout(()=>document.getElementById("pinActual").focus(), 180);
-  // Cerrar sidebar mobile
-  if(window.innerWidth<=768) document.getElementById("sidebar").classList.remove("open");
+  setTimeout(()=>document.getElementById("pinActual").focus(),180);
+  if(window.innerWidth<=768)document.getElementById("sidebar").classList.remove("open");
 }
-function cerrarModalPin() {
-  document.getElementById("overlayPin").classList.remove("open");
+function cerrarModalPin(){document.getElementById("overlayPin").classList.remove("open");}
+async function guardarNuevoPin(){
+  const actual=document.getElementById("pinActual").value.trim();
+  const nuevo=document.getElementById("pinNuevo").value.trim();
+  const confirma=document.getElementById("pinConfirm").value.trim();
+  if(!actual||!nuevo||!confirma){toast("Completa todos los campos","err");return;}
+  if(nuevo!==confirma){toast("Los PINs nuevos no coinciden","err");return;}
+  if(nuevo.length<4){toast("El PIN debe tener al menos 4 dígitos","err");return;}
+  const hashActual=await sha256(actual);
+  if(hashActual!==PIN_HASH){toast("❌ PIN actual incorrecto","err");return;}
+  const ok=await cambiarPIN(nuevo);
+  if(ok)cerrarModalPin();
 }
-async function guardarNuevoPin() {
-  const actual   = document.getElementById("pinActual").value.trim();
-  const nuevo    = document.getElementById("pinNuevo").value.trim();
-  const confirma = document.getElementById("pinConfirm").value.trim();
-
-  if (!actual || !nuevo || !confirma) {
-    toast("Completa todos los campos", "err"); return;
-  }
-  if (nuevo !== confirma) {
-    toast("Los PINs nuevos no coinciden", "err"); return;
-  }
-  if (nuevo.length < 4) {
-    toast("El PIN debe tener al menos 4 dígitos", "err"); return;
-  }
-  // Verificar PIN actual
-  const hashActual = await sha256(actual);
-  if (hashActual !== PIN_HASH) {
-    toast("❌ PIN actual incorrecto", "err"); return;
-  }
-  const ok = await cambiarPIN(nuevo);
-  if (ok) cerrarModalPin();
-}
-// Boot handled by login system above
 
 // ════════════════════════════════════════════════════════════
-//  BOOT — al final para que todas las funciones estén definidas
+//  BOOT — siempre al final
 // ════════════════════════════════════════════════════════════
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") { cmo(); cerrarModalPin(); }
-  if (document.getElementById("loginScreen").classList.contains("hidden")) return;
-  if (e.key >= "0" && e.key <= "9") pinKey(e.key, null);
-  if (e.key === "Backspace") pinDel(null);
-});
-
 document.addEventListener("DOMContentLoaded", async () => {
 
-  // ── Inicializar keypad via addEventListener (no inline) ──
-  let _lastTouch = 0;
+  // Inicializar keypad sin handlers inline
+  let _lt = 0;
   document.getElementById("keypad").addEventListener("touchstart", e => {
     const btn = e.target.closest("[data-digit]");
-    if (!btn) return;
-    e.preventDefault(); // evita el click posterior
-    _lastTouch = Date.now();
+    if (!btn || btn.disabled) return;
+    e.preventDefault();
+    _lt = Date.now();
     const d = btn.dataset.digit;
     if (d === "del") pinDel(btn); else pinKey(d, btn);
   }, { passive: false });
 
   document.getElementById("keypad").addEventListener("click", e => {
     const btn = e.target.closest("[data-digit]");
-    if (!btn) return;
-    if (Date.now() - _lastTouch < 400) return; // ya lo manejó touchstart
+    if (!btn || btn.disabled) return;
+    if (Date.now() - _lt < 400) return;
     const d = btn.dataset.digit;
     if (d === "del") pinDel(btn); else pinKey(d, btn);
   });
 
-  // ── Limpiar lockout expirado ─────────────────────────────
-  const l = getLockout();
-  if (l.until && l.until < Date.now()) saveLockout({ count:0, until:0 });
+  // Teclado físico
+  document.addEventListener("keydown", e => {
+    if (!document.getElementById("loginScreen").classList.contains("hidden")) {
+      if (e.key >= "0" && e.key <= "9") pinKey(e.key, null);
+      if (e.key === "Backspace") pinDel(null);
+    }
+    if (e.key === "Escape") { cmo(); cerrarModalPin(); }
+  });
 
-  // ── Cargar PIN desde BD ──────────────────────────────────
+  // Limpiar lockout expirado
+  const l = getLockout();
+  if (l.until && l.until < Date.now()) saveLockout({count:0, until:0});
+
+  // Cargar PIN desde BD
   document.getElementById("loginError").textContent = "Cargando...";
   await cargarPIN();
   document.getElementById("loginError").textContent = "";
 
+  // Sesión activa → saltar login
   if (hasValidSession()) {
     document.getElementById("loginScreen").classList.add("hidden");
     document.getElementById("appShell").style.display = "grid";
@@ -1315,7 +1166,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (isLockedOut()) showLockoutMsg();
   }
 });
-
 </script>
 </body>
 </html>
