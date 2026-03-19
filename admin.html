@@ -444,20 +444,20 @@
       <div class="pin-dot" id="dot3"></div>
     </div>
 
-    <!-- Teclado numérico -->
-    <div class="keypad">
-      <button class="key" ontouchstart="pinKey('1',this,true)" onclick="pinKey('1',this)">1</button>
-      <button class="key" ontouchstart="pinKey('2',this,true)" onclick="pinKey('2',this)">2</button>
-      <button class="key" ontouchstart="pinKey('3',this,true)" onclick="pinKey('3',this)">3</button>
-      <button class="key" ontouchstart="pinKey('4',this,true)" onclick="pinKey('4',this)">4</button>
-      <button class="key" ontouchstart="pinKey('5',this,true)" onclick="pinKey('5',this)">5</button>
-      <button class="key" ontouchstart="pinKey('6',this,true)" onclick="pinKey('6',this)">6</button>
-      <button class="key" ontouchstart="pinKey('7',this,true)" onclick="pinKey('7',this)">7</button>
-      <button class="key" ontouchstart="pinKey('8',this,true)" onclick="pinKey('8',this)">8</button>
-      <button class="key" ontouchstart="pinKey('9',this,true)" onclick="pinKey('9',this)">9</button>
+    <!-- Teclado numérico — handlers via JS, no inline -->
+    <div class="keypad" id="keypad">
+      <button class="key" data-digit="1">1</button>
+      <button class="key" data-digit="2">2</button>
+      <button class="key" data-digit="3">3</button>
+      <button class="key" data-digit="4">4</button>
+      <button class="key" data-digit="5">5</button>
+      <button class="key" data-digit="6">6</button>
+      <button class="key" data-digit="7">7</button>
+      <button class="key" data-digit="8">8</button>
+      <button class="key" data-digit="9">9</button>
       <button class="key empty" disabled></button>
-      <button class="key" ontouchstart="pinKey('0',this,true)" onclick="pinKey('0',this)">0</button>
-      <button class="key del" ontouchstart="pinDel(this,true)" onclick="pinDel(this)">⌫</button>
+      <button class="key" data-digit="0">0</button>
+      <button class="key del" data-digit="del">⌫</button>
     </div>
 
     <div class="login-error"  id="loginError"></div>
@@ -636,6 +636,7 @@
 //  API       : endpoint del backend universal
 let PIN_HASH = null; // Se carga desde la base de datos al iniciar
 const API      = "https://endpoints-tb.onrender.com";
+const WA="50660188490", OH=8, CH=17, DA=14;
 
 // ════════════════════════════════════════════════════════════
 //  LOGIN — SHA-256 puro, sin localStorage para el PIN
@@ -761,18 +762,7 @@ function flashKey(el) {
   setTimeout(() => el.classList.remove("pressed"), 150);
 }
 
-// Flag para evitar doble disparo touchstart + click en mobile
-let _lastTouch = 0;
-function _isTouchDupe() {
-  const now = Date.now();
-  if (now - _lastTouch < 350) return true;
-  _lastTouch = now;
-  return false;
-}
-
-function pinKey(digit, el, fromTouch) {
-  if (fromTouch) _lastTouch = Date.now();
-  else if (_isTouchDupe()) return; // evitar doble disparo
+function pinKey(digit, el) {
   if (isLockedOut()) { showLockoutMsg(); return; }
   flashKey(el);
   if (pinBuffer.length >= 4) return;
@@ -782,9 +772,7 @@ function pinKey(digit, el, fromTouch) {
   if (pinBuffer.length === 4) setTimeout(checkPin, 150);
 }
 
-function pinDel(el, fromTouch) {
-  if (fromTouch) _lastTouch = Date.now();
-  else if (_isTouchDupe()) return;
+function pinDel(el) {
   flashKey(el);
   pinBuffer = pinBuffer.slice(0, -1);
   updateDots();
@@ -862,35 +850,10 @@ function unlockApp() {
   }, 350);
 }
 
-// ── Keyboard support ────────────────────────────────────────
-document.addEventListener("keydown", e => {
-  if (document.getElementById("loginScreen").classList.contains("hidden")) return;
-  if (e.key >= "0" && e.key <= "9") pinKey(e.key);
-  if (e.key === "Backspace") pinDel();
-});
 
-// ── Boot ────────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", async () => {
-  // Limpiar lockout expirado
-  const l = getLockout();
-  if (l.until && l.until < Date.now()) saveLockout({ count:0, until:0 });
 
-  // Mostrar spinner mientras carga el PIN
-  document.getElementById("loginError").textContent = "Cargando...";
-  await cargarPIN();
-  document.getElementById("loginError").textContent = "";
 
-  if (hasValidSession()) {
-    document.getElementById("loginScreen").classList.add("hidden");
-    document.getElementById("appShell").style.display = "grid";
-    cargar();
-  } else {
-    if (isLockedOut()) showLockoutMsg();
-  }
-});
 
-// ── CONFIG ─────────────────────────────────────────────────
-const WA="50660188490", OH=8, CH=17, DA=14;
 
 // ── UTILS ──────────────────────────────────────────────────
 const xor=(s,k)=>s.split('').map(c=>String.fromCharCode(c.charCodeAt(0)^k)).join('');
@@ -1267,10 +1230,6 @@ function toast(msg,type="inf"){
   setTimeout(()=>el.remove(),3400);
 }
 
-document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"){ cmo(); cerrarModalPin(); }
-});
-
 // ── MODAL CAMBIAR PIN ───────────────────────────────────────
 function abrirModalPin() {
   document.getElementById("pinActual").value  = "";
@@ -1307,6 +1266,56 @@ async function guardarNuevoPin() {
   if (ok) cerrarModalPin();
 }
 // Boot handled by login system above
+
+// ════════════════════════════════════════════════════════════
+//  BOOT — al final para que todas las funciones estén definidas
+// ════════════════════════════════════════════════════════════
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") { cmo(); cerrarModalPin(); }
+  if (document.getElementById("loginScreen").classList.contains("hidden")) return;
+  if (e.key >= "0" && e.key <= "9") pinKey(e.key, null);
+  if (e.key === "Backspace") pinDel(null);
+});
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+  // ── Inicializar keypad via addEventListener (no inline) ──
+  let _lastTouch = 0;
+  document.getElementById("keypad").addEventListener("touchstart", e => {
+    const btn = e.target.closest("[data-digit]");
+    if (!btn) return;
+    e.preventDefault(); // evita el click posterior
+    _lastTouch = Date.now();
+    const d = btn.dataset.digit;
+    if (d === "del") pinDel(btn); else pinKey(d, btn);
+  }, { passive: false });
+
+  document.getElementById("keypad").addEventListener("click", e => {
+    const btn = e.target.closest("[data-digit]");
+    if (!btn) return;
+    if (Date.now() - _lastTouch < 400) return; // ya lo manejó touchstart
+    const d = btn.dataset.digit;
+    if (d === "del") pinDel(btn); else pinKey(d, btn);
+  });
+
+  // ── Limpiar lockout expirado ─────────────────────────────
+  const l = getLockout();
+  if (l.until && l.until < Date.now()) saveLockout({ count:0, until:0 });
+
+  // ── Cargar PIN desde BD ──────────────────────────────────
+  document.getElementById("loginError").textContent = "Cargando...";
+  await cargarPIN();
+  document.getElementById("loginError").textContent = "";
+
+  if (hasValidSession()) {
+    document.getElementById("loginScreen").classList.add("hidden");
+    document.getElementById("appShell").style.display = "grid";
+    cargar();
+  } else {
+    if (isLockedOut()) showLockoutMsg();
+  }
+});
+
 </script>
 </body>
 </html>
