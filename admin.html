@@ -501,6 +501,11 @@
       <span class="s-icon">🐾</span> Todas las citas
       <span class="s-badge" id="bCitas">0</span>
     </div>
+    <div class="s-label">Seguridad</div>
+    <div class="s-item" onclick="abrirModalPin()">
+      <span class="s-icon">🔐</span> Cambiar PIN
+    </div>
+
     <div class="s-stats">
       <div class="ss-h">Hoy</div>
       <div class="ss-r"><span class="ss-l">Libres</span><span class="ss-v cg" id="stLib">—</span></div>
@@ -585,6 +590,38 @@
   </div>
 </div><!-- /.shell -->
 
+<!-- MODAL CAMBIAR PIN -->
+<div class="overlay" id="overlayPin" onclick="if(event.target===this)cerrarModalPin()">
+  <div class="modal" style="max-width:360px;">
+    <div class="m-hd">
+      <div>
+        <div class="m-title">🔐 Cambiar PIN</div>
+        <div class="m-sub">El nuevo PIN se guarda en la base de datos</div>
+      </div>
+      <button class="m-x" onclick="cerrarModalPin()">✕</button>
+    </div>
+    <div class="fg">
+      <label class="fl">PIN actual</label>
+      <input class="fi" id="pinActual" type="password" placeholder="••••" maxlength="10"
+             inputmode="numeric" style="letter-spacing:.3em;font-size:1.2rem;text-align:center;"/>
+    </div>
+    <div class="fg">
+      <label class="fl">PIN nuevo</label>
+      <input class="fi" id="pinNuevo" type="password" placeholder="••••" maxlength="10"
+             inputmode="numeric" style="letter-spacing:.3em;font-size:1.2rem;text-align:center;"/>
+    </div>
+    <div class="fg">
+      <label class="fl">Confirmar PIN nuevo</label>
+      <input class="fi" id="pinConfirm" type="password" placeholder="••••" maxlength="10"
+             inputmode="numeric" style="letter-spacing:.3em;font-size:1.2rem;text-align:center;"/>
+    </div>
+    <div class="m-ft">
+      <button class="btn bgh" onclick="cerrarModalPin()">Cancelar</button>
+      <button class="btn bp" onclick="guardarNuevoPin()">💾 Guardar PIN</button>
+    </div>
+  </div>
+</div>
+
 <div class="toasts" id="toasts"></div>
 
 <script>
@@ -595,7 +632,7 @@
 //    1. Abre https://emn178.github.io/online-tools/sha256.html
 //    2. Escribe tu PIN → copia el hash → pégalo aquí
 //  API       : endpoint del backend universal
-const PIN_HASH = "357c08aaae039838b09aeb5b1ea24dfdc71e482d1c3f6746c6b12e8fa8c5fd50";
+let PIN_HASH = null; // Se carga desde la base de datos al iniciar
 const API      = "https://endpoints-tb.onrender.com";
 
 // ════════════════════════════════════════════════════════════
@@ -612,6 +649,68 @@ let pinBuffer = "";
 async function sha256(str) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+
+// ── CARGAR PIN DESDE BASE DE DATOS ──────────────────────────
+async function cargarPIN() {
+  try {
+    const r = await fetch(`${API}/table/phcr_config/query`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filters: [{ field: "clave", operator: "eq", value: "pin_hash" }],
+        limit: 1,
+      }),
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const { data } = await r.json();
+    if (data && data.length > 0) {
+      PIN_HASH = data[0].valor;
+      console.log("✅ PIN cargado desde BD");
+      return true;
+    }
+    throw new Error("PIN no encontrado en BD");
+  } catch(e) {
+    console.error("❌ Error cargando PIN:", e.message);
+    // Fallback: PIN 1234 hardcodeado solo si la BD falla
+    PIN_HASH = "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+    return false;
+  }
+}
+
+// ── CAMBIAR PIN (desde panel admin) ─────────────────────────
+async function cambiarPIN(pinNuevo) {
+  if (!pinNuevo || pinNuevo.length < 4) {
+    toast("El PIN debe tener al menos 4 dígitos", "err"); return false;
+  }
+  const nuevoHash = await sha256(pinNuevo);
+  // Buscar el registro actual para obtener su ID
+  try {
+    const r = await fetch(`${API}/table/phcr_config/query`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filters: [{ field: "clave", operator: "eq", value: "pin_hash" }],
+        limit: 1,
+      }),
+    });
+    const { data } = await r.json();
+    if (!data || data.length === 0) throw new Error("Config no encontrada");
+    const id = data[0].id;
+    // Actualizar
+    const upd = await fetch(`${API}/table/phcr_config/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ valor: nuevoHash }),
+    });
+    if (!upd.ok) throw new Error("HTTP " + upd.status);
+    PIN_HASH = nuevoHash;
+    toast("🔐 PIN actualizado correctamente", "ok");
+    return true;
+  } catch(e) {
+    toast("❌ Error al cambiar el PIN: " + e.message, "err");
+    return false;
+  }
 }
 
 // ── Lockout ─────────────────────────────────────────────────
@@ -745,15 +844,22 @@ document.addEventListener("keydown", e => {
   if (e.key === "Backspace") pinDel();
 });
 
-// ── Boot: check session first ────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
+// ── Boot ────────────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", async () => {
+  // Limpiar lockout expirado
+  const l = getLockout();
+  if (l.until && l.until < Date.now()) saveLockout({ count:0, until:0 });
+
+  // Mostrar spinner mientras carga el PIN
+  document.getElementById("loginError").textContent = "Cargando...";
+  await cargarPIN();
+  document.getElementById("loginError").textContent = "";
+
   if (hasValidSession()) {
-    // Sesión activa — saltar login
     document.getElementById("loginScreen").classList.add("hidden");
     document.getElementById("appShell").style.display = "grid";
     cargar();
   } else {
-    // Mostrar login
     if (isLockedOut()) showLockoutMsg();
   }
 });
@@ -1120,7 +1226,45 @@ function toast(msg,type="inf"){
   setTimeout(()=>el.remove(),3400);
 }
 
-document.addEventListener("keydown",e=>{if(e.key==="Escape")cmo();});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ cmo(); cerrarModalPin(); }
+});
+
+// ── MODAL CAMBIAR PIN ───────────────────────────────────────
+function abrirModalPin() {
+  document.getElementById("pinActual").value  = "";
+  document.getElementById("pinNuevo").value   = "";
+  document.getElementById("pinConfirm").value = "";
+  document.getElementById("overlayPin").classList.add("open");
+  setTimeout(()=>document.getElementById("pinActual").focus(), 180);
+  // Cerrar sidebar mobile
+  if(window.innerWidth<=768) document.getElementById("sidebar").classList.remove("open");
+}
+function cerrarModalPin() {
+  document.getElementById("overlayPin").classList.remove("open");
+}
+async function guardarNuevoPin() {
+  const actual   = document.getElementById("pinActual").value.trim();
+  const nuevo    = document.getElementById("pinNuevo").value.trim();
+  const confirma = document.getElementById("pinConfirm").value.trim();
+
+  if (!actual || !nuevo || !confirma) {
+    toast("Completa todos los campos", "err"); return;
+  }
+  if (nuevo !== confirma) {
+    toast("Los PINs nuevos no coinciden", "err"); return;
+  }
+  if (nuevo.length < 4) {
+    toast("El PIN debe tener al menos 4 dígitos", "err"); return;
+  }
+  // Verificar PIN actual
+  const hashActual = await sha256(actual);
+  if (hashActual !== PIN_HASH) {
+    toast("❌ PIN actual incorrecto", "err"); return;
+  }
+  const ok = await cambiarPIN(nuevo);
+  if (ok) cerrarModalPin();
+}
 // Boot handled by login system above
 </script>
 </body>
